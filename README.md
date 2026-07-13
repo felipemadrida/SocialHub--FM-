@@ -4,6 +4,10 @@ Dashboard en español para gestionar cuentas, contenido, agenda y automatizació
 
 > Incluye **Marketing Hub**, **IA Studio**, pestaña **Despliegue** (guía interactiva) y seguridad **Admin / Retail** (NextAuth). Tema **Blanco | Negro**. Publicación simulada por defecto (`mockPublish`).
 
+**Web (producción):** https://socialhub-fm.vercel.app  
+**Repo:** https://github.com/felipemadrida/SocialHub--FM-  
+**DB:** PostgreSQL en Neon
+
 ---
 
 ## Requisitos
