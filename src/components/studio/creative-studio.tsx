@@ -119,7 +119,7 @@ export function CreativeStudio({ toast }: Props) {
       if (categoryFilter !== "all") params.set("category", categoryFilter);
       if (collectionFilter !== "all") params.set("collection", collectionFilter);
       if (q.trim()) params.set("q", q.trim());
-      const res = await fetch(`/api/studio?${params.toString()}`);
+      const res = await fetch(`/api/studio/media?${params.toString()}`);
       if (!res.ok) throw new Error("load failed");
       const data = await res.json();
       setAssets(data.assets || []);
@@ -179,7 +179,7 @@ export function CreativeStudio({ toast }: Props) {
       form.append("tags", tags);
       if (altText.trim()) form.append("altText", altText.trim());
 
-      const res = await fetch("/api/studio", { method: "POST", body: form });
+      const res = await fetch("/api/studio/upload", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "upload failed");
       toast({ title: "Asset subido", description: data.name });
@@ -198,7 +198,7 @@ export function CreativeStudio({ toast }: Props) {
   };
 
   const toggleFavorite = async (asset: StudioAssetDTO) => {
-    const res = await fetch("/api/studio", {
+    const res = await fetch("/api/studio/media", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: asset.id, isFavorite: !asset.isFavorite }),
@@ -214,7 +214,7 @@ export function CreativeStudio({ toast }: Props) {
     if (!editing) return;
     setSaving(true);
     try {
-      const res = await fetch("/api/studio", {
+      const res = await fetch("/api/studio/media", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -239,7 +239,7 @@ export function CreativeStudio({ toast }: Props) {
   };
 
   const remove = async (id: string) => {
-    const res = await fetch(`/api/studio?id=${encodeURIComponent(id)}`, {
+    const res = await fetch(`/api/studio/media?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
     if (!res.ok) {
@@ -839,9 +839,17 @@ export function StudioAssetPicker({
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    fetch("/api/studio?type=image")
-      .then((r) => r.json())
-      .then((d) => setAssets(d.assets || []))
+    Promise.all([
+      fetch("/api/studio/media?type=image").then((r) => r.json()),
+      fetch("/api/studio/media?type=design").then((r) => r.json()),
+    ])
+      .then(([images, designs]) => {
+        const map = new Map<string, StudioAssetDTO>();
+        for (const a of [...(images.assets || []), ...(designs.assets || [])]) {
+          map.set(a.id, a);
+        }
+        setAssets([...map.values()]);
+      })
       .finally(() => setLoading(false));
   }, [open]);
 

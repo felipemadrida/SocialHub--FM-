@@ -95,7 +95,7 @@ export const updateAutomationSchema = z.object({
 export const publishSchema = z.object({
   content: z.string().trim().min(1).max(5000),
   platforms: z.array(platformSchema).min(1),
-  mediaUrls: z.array(z.string().url()).optional(),
+  mediaUrls: z.array(mediaUrlSchema).optional(),
 });
 
 const timeSchema = z

@@ -142,6 +142,7 @@ export default function SocialDashboard() {
           body: JSON.stringify({
             content: newPostContent,
             platforms: newPostPlatforms,
+            mediaUrls: newPostMediaUrls.length ? newPostMediaUrls : undefined,
           }),
         });
 
@@ -935,6 +936,29 @@ export default function SocialDashboard() {
                             </div>
 
                             <p className="text-sm line-clamp-3 min-h-[3.75rem]">{post.content}</p>
+
+                            {(() => {
+                              const media = parseJsonArray(post.mediaUrls);
+                              if (!media.length) return null;
+                              return (
+                                <div className="mt-3 flex gap-1.5 overflow-x-auto">
+                                  {media.slice(0, 4).map((url) => (
+                                    <div
+                                      key={url}
+                                      className="h-14 w-14 shrink-0 overflow-hidden rounded-md border bg-muted"
+                                    >
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img src={url} alt="" className="h-full w-full object-cover" />
+                                    </div>
+                                  ))}
+                                  {media.length > 4 && (
+                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border text-xs text-muted-foreground">
+                                      +{media.length - 4}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
 
                             <div className="flex items-center gap-1.5 mt-3">
                               {platformList.map((p) => {
