@@ -58,6 +58,6 @@ socialhub-project.zip
 hero-banner.png
 hero-banner.svg
 
-# sqlite databases
-db/
-*.db
+# uploaded studio files (keep folder)
+public/uploads/studio/*
+!public/uploads/studio/.gitkeep

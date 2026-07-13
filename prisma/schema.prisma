@@ -128,3 +128,20 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model MediaAsset {
+  id         String   @id @default(cuid())
+  name       String
+  type       String   // image | video | design | document
+  category   String   // marca | campana | producto | redes | docs | otro
+  collection String?
+  tags       String   @default("[]") // JSON string array
+  altText    String?
+  url        String
+  filePath   String?  // relative path under public/ for local deletes
+  mimeType   String?
+  sizeBytes  Int      @default(0)
+  isFavorite Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

@@ -39,6 +39,7 @@ import {
   Rocket,
   Shield,
   LogOut,
+  FolderOpen,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,6 +76,7 @@ import { MarketingHub } from "@/components/marketing/marketing-hub";
 import { AiStudio } from "@/components/marketing/ai-studio";
 import { DeployGuide } from "@/components/deploy/deploy-guide";
 import { AdminUsersPanel } from "@/components/admin/admin-users-panel";
+import { CreativeStudio, StudioAssetPicker } from "@/components/studio/creative-studio";
 
 // ─────────────────────────────────────────────────
 // MAIN COMPONENT
@@ -95,6 +97,7 @@ export default function SocialDashboard() {
   const [newPostPlatforms, setNewPostPlatforms] = useState<string[]>([]);
   const [newPostStatus, setNewPostStatus] = useState("draft");
   const [newPostScheduledAt, setNewPostScheduledAt] = useState("");
+  const [newPostMediaUrls, setNewPostMediaUrls] = useState<string[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
 
   // New account dialog
@@ -155,6 +158,7 @@ export default function SocialDashboard() {
               platforms: newPostPlatforms,
               status: allSuccess ? "published" : "failed",
               accountId: account.id,
+              mediaUrls: newPostMediaUrls.length ? newPostMediaUrls : undefined,
             }),
           });
 
@@ -175,6 +179,7 @@ export default function SocialDashboard() {
             status: newPostStatus,
             scheduledAt: newPostStatus === "scheduled" ? newPostScheduledAt : null,
             accountId: account.id,
+            mediaUrls: newPostMediaUrls.length ? newPostMediaUrls : undefined,
           }),
         });
 
@@ -189,6 +194,7 @@ export default function SocialDashboard() {
       setNewPostPlatforms([]);
       setNewPostStatus("draft");
       setNewPostScheduledAt("");
+      setNewPostMediaUrls([]);
       fetchAllData();
     } catch (error) {
       console.error(error);
@@ -310,6 +316,7 @@ export default function SocialDashboard() {
     setNewPostScheduledAt(
       post.scheduledAt ? new Date(post.scheduledAt).toISOString().slice(0, 16) : ""
     );
+    setNewPostMediaUrls(parseJsonArray(post.mediaUrls));
     setNewPostOpen(true);
   };
 
@@ -341,6 +348,7 @@ export default function SocialDashboard() {
             platforms: newPostPlatforms,
             status: newPostStatus,
             scheduledAt: newPostStatus === "scheduled" ? newPostScheduledAt : null,
+            mediaUrls: newPostMediaUrls,
           }),
         });
         if (!res.ok) throw new Error("update failed");
@@ -351,6 +359,7 @@ export default function SocialDashboard() {
         setNewPostPlatforms([]);
         setNewPostStatus("draft");
         setNewPostScheduledAt("");
+        setNewPostMediaUrls([]);
         fetchAllData();
       } catch {
         toast({ title: "Error", description: "No se pudo actualizar el post", variant: "destructive" });
@@ -467,6 +476,7 @@ export default function SocialDashboard() {
                     setNewPostPlatforms([]);
                     setNewPostStatus("draft");
                     setNewPostScheduledAt("");
+                    setNewPostMediaUrls([]);
                   }
                 }}>
                   <DialogTrigger asChild>
@@ -488,7 +498,7 @@ export default function SocialDashboard() {
         {/* MAIN CONTENT */}
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 sm:grid-cols-5 lg:grid-cols-10 h-auto gap-1 p-1">
+            <TabsList className="grid w-full grid-cols-5 sm:grid-cols-5 lg:grid-cols-11 h-auto gap-1 p-1">
               <TabsTrigger value="dashboard" className="gap-1.5 text-xs sm:text-sm">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Dashboard</span>
@@ -496,6 +506,10 @@ export default function SocialDashboard() {
               <TabsTrigger value="marketing" className="gap-1.5 text-xs sm:text-sm">
                 <Megaphone className="h-4 w-4" />
                 <span className="hidden sm:inline">Marketing</span>
+              </TabsTrigger>
+              <TabsTrigger value="studio" className="gap-1.5 text-xs sm:text-sm">
+                <FolderOpen className="h-4 w-4" />
+                <span className="hidden sm:inline">Studio</span>
               </TabsTrigger>
               <TabsTrigger value="ai-studio" className="gap-1.5 text-xs sm:text-sm">
                 <Wand2 className="h-4 w-4" />
@@ -737,6 +751,11 @@ export default function SocialDashboard() {
                 toast={toast}
                 onOpenAiStudio={() => setActiveTab("ai-studio")}
               />
+            </TabsContent>
+
+            {/* ── STUDIO CREATIVO ─────────────────────── */}
+            <TabsContent value="studio" className="space-y-6">
+              <CreativeStudio toast={toast} />
             </TabsContent>
 
             {/* ── IA STUDIO TAB ──────────────────────── */}
@@ -1349,6 +1368,7 @@ export default function SocialDashboard() {
             setNewPostPlatforms([]);
             setNewPostStatus("draft");
             setNewPostScheduledAt("");
+            setNewPostMediaUrls([]);
           }
         }}>
           <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -1375,6 +1395,11 @@ export default function SocialDashboard() {
                 />
                 <p className="text-xs text-muted-foreground text-right">{newPostContent.length}/280 caracteres</p>
               </div>
+
+              <StudioAssetPicker
+                selected={newPostMediaUrls}
+                onChange={setNewPostMediaUrls}
+              />
 
               <div className="space-y-2">
                 <Label>Plataformas</Label>

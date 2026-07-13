@@ -36,9 +36,22 @@ const dateStringSchema = z
   .string()
   .refine((v) => !Number.isNaN(Date.parse(v)), { message: "Invalid date" });
 
+const mediaUrlSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(2_000_000)
+  .refine(
+    (v) =>
+      v.startsWith("/") ||
+      v.startsWith("data:") ||
+      /^https?:\/\//i.test(v),
+    { message: "Invalid media URL" }
+  );
+
 export const createPostSchema = z.object({
   content: z.string().trim().min(1).max(5000),
-  mediaUrls: z.array(z.string().url()).optional(),
+  mediaUrls: z.array(mediaUrlSchema).optional(),
   platforms: z.array(platformSchema).min(1),
   status: postStatusSchema.optional().default("draft"),
   scheduledAt: dateStringSchema.nullable().optional(),
@@ -48,7 +61,7 @@ export const createPostSchema = z.object({
 export const updatePostSchema = z.object({
   id: z.string().min(1),
   content: z.string().trim().min(1).max(5000).optional(),
-  mediaUrls: z.array(z.string().url()).nullable().optional(),
+  mediaUrls: z.array(mediaUrlSchema).nullable().optional(),
   platforms: z.array(platformSchema).min(1).optional(),
   status: postStatusSchema.optional(),
   scheduledAt: dateStringSchema.nullable().optional(),
