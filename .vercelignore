@@ -1,0 +1,12 @@
+socialhub-project
+socialhub-project.zip
+node_modules
+.next
+.git
+db
+*.db
+.env
+.env.local
+mini-services/**/node_modules
+hero-banner.png
+hero-banner.svg
