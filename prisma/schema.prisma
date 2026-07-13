@@ -8,21 +8,28 @@ datasource db {
 }
 
 model SocialAccount {
-  id           String   @id @default(cuid())
-  platform     String   // "facebook", "instagram", "tiktok", "x"
-  accountName  String
-  avatarUrl    String?
-  accessToken  String?
-  refreshToken String?
-  isActive     Boolean  @default(true)
-  followers    Int      @default(0)
-  following    Int      @default(0)
-  posts        Int      @default(0)
-  engagement   Float    @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String    @id @default(cuid())
+  platform       String    // facebook | instagram | tiktok | x | linkedin | youtube | pinterest
+  accountName    String
+  avatarUrl      String?
+  accessToken    String?
+  refreshToken   String?
+  externalId     String?   // platform user/page/channel id
+  tokenExpiresAt DateTime?
+  scopes         String?   // space-separated
+  metaJson       String?   // JSON: pageId, boardId, orgUrn, etc.
+  connectedAt    DateTime?
+  isActive       Boolean   @default(true)
+  followers      Int       @default(0)
+  following      Int       @default(0)
+  posts          Int       @default(0)
+  engagement     Float     @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
   scheduledPosts ScheduledPost[]
-  analytics     Analytics[]
+  analytics      Analytics[]
+
+  @@index([platform])
 }
 
 model ScheduledPost {

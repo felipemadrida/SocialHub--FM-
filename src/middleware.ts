@@ -24,6 +24,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // OAuth provider callbacks must be reachable without forcing JSON 401
+  if (/^\/api\/oauth\/[^/]+\/callback$/.test(pathname)) {
+    return NextResponse.next();
+  }
+
   const isPublic = PUBLIC_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   );

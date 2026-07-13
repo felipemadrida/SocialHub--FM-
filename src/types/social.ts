@@ -16,7 +16,11 @@ export interface SocialAccount {
   avatarUrl: string | null;
   accessToken?: string | null;
   refreshToken?: string | null;
+  externalId?: string | null;
+  connectedAt?: string | null;
   isActive: boolean;
+  isConnected?: boolean;
+  isDemo?: boolean;
   followers: number;
   following: number;
   posts: number;

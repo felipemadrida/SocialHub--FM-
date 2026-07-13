@@ -61,3 +61,5 @@ hero-banner.svg
 # uploaded studio files (keep folder)
 public/uploads/studio/*
 !public/uploads/studio/.gitkeep
+
+db/

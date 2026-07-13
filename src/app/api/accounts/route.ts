@@ -14,7 +14,15 @@ export async function GET() {
         _count: { select: { scheduledPosts: true, analytics: true } },
       },
     });
-    return NextResponse.json(accounts);
+    // Don't leak raw tokens to the browser — expose connection status only
+    const safe = accounts.map((a) => ({
+      ...a,
+      accessToken: a.accessToken ? "***" : null,
+      refreshToken: a.refreshToken ? "***" : null,
+      isConnected: Boolean(a.accessToken),
+      isDemo: Boolean(a.accessToken?.startsWith("demo_")),
+    }));
+    return NextResponse.json(safe);
   } catch (error) {
     console.error("Error fetching accounts:", error);
     return NextResponse.json({ error: "Failed to fetch accounts" }, { status: 500 });

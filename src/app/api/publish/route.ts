@@ -1,50 +1,57 @@
-import { getAutomationServiceUrl } from "@/lib/automation";
+import { publishSchema, zodErrorResponse, platformSchema } from "@/lib/validations";
+import { publishToPlatforms } from "@/lib/publish/multi-platform";
+import { requireSession } from "@/lib/api-auth";
 import { getOrCreateSettings } from "@/lib/settings";
-import { publishSchema, zodErrorResponse } from "@/lib/validations";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
+const multiPublishSchema = publishSchema.extend({
+  accountIds: z.array(z.string()).optional(),
+  platforms: z.array(platformSchema).min(1),
+});
+
+/**
+ * Publish content to one or many platforms at the same time.
+ * Uses connected SocialAccount tokens (live or demo/mock).
+ */
 export async function POST(request: Request) {
+  const { error } = await requireSession();
+  if (error) return error;
+
   try {
     const body = await request.json();
-    const parsed = publishSchema.safeParse(body);
+    const parsed = multiPublishSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(zodErrorResponse(parsed.error), { status: 400 });
     }
 
     const settings = await getOrCreateSettings();
-    if (!settings.mockPublish) {
-      return NextResponse.json(
-        {
-          error: "Live publish mode is not implemented yet",
-          hint: "Enable mock publish in Configuración, or connect real platform APIs",
-        },
-        { status: 501 }
-      );
-    }
-
-    const automationUrl = await getAutomationServiceUrl();
-    const response = await fetch(`${automationUrl}/api/publish`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...parsed.data, mockPublish: true }),
+    const results = await publishToPlatforms({
+      content: parsed.data.content,
+      platforms: parsed.data.platforms,
+      mediaUrls: parsed.data.mediaUrls,
+      mockPublish: settings.mockPublish,
+      accountIds: parsed.data.accountIds,
     });
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: "Automation service unavailable" },
-        { status: 502 }
-      );
-    }
+    const allSuccess = results.every((r) => r.status === "published");
+    const anySuccess = results.some((r) => r.status === "published");
 
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error("Error publishing post:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to publish post",
-        hint: "Start mini-services/social-automation on port 3031",
+    return NextResponse.json({
+      results,
+      summary: {
+        total: results.length,
+        published: results.filter((r) => r.status === "published").length,
+        failed: results.filter((r) => r.status === "failed").length,
+        allSuccess,
+        anySuccess,
+        mockPublish: settings.mockPublish,
       },
+    });
+  } catch (err) {
+    console.error("Error publishing post:", err);
+    return NextResponse.json(
+      { error: "Failed to publish to platforms" },
       { status: 500 }
     );
   }

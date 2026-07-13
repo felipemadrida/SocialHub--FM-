@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -77,6 +77,7 @@ import { AiStudio } from "@/components/marketing/ai-studio";
 import { DeployGuide } from "@/components/deploy/deploy-guide";
 import { AdminUsersPanel } from "@/components/admin/admin-users-panel";
 import { CreativeStudio, StudioAssetPicker } from "@/components/studio/creative-studio";
+import { ConnectNetworksPanel } from "@/components/accounts/connect-networks-panel";
 
 // ─────────────────────────────────────────────────
 // MAIN COMPONENT
@@ -113,7 +114,33 @@ export default function SocialDashboard() {
   const [newAutoAction, setNewAutoAction] = useState("post");
   const [newAutoPlatforms, setNewAutoPlatforms] = useState<string[]>([]);
 
-    // Create new post
+  // Handle OAuth return ?tab=accounts&oauth=success
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const oauth = params.get("oauth");
+    const tab = params.get("tab");
+    const platform = params.get("platform");
+    if (tab) setActiveTab(tab);
+    if (oauth === "success") {
+      toast({
+        title: `Conectado: ${platform || "red social"}`,
+        description: "Ya puedes publicar contenido directo a esta red",
+      });
+      fetchAllData();
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (oauth === "denied" || oauth === "error" || oauth === "invalid") {
+      toast({
+        title: "OAuth no completado",
+        description: `Resultado: ${oauth}${platform ? ` (${platform})` : ""}`,
+        variant: "destructive",
+      });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Create new post — publish to one or many connected networks at once
   const handleCreatePost = async () => {
     if (!newPostContent.trim()) {
       toast({ title: "Error", description: "El contenido es requerido", variant: "destructive" });
@@ -124,18 +151,38 @@ export default function SocialDashboard() {
       return;
     }
 
+    const connectedForTargets = accounts.filter(
+      (a) =>
+        a.isActive &&
+        newPostPlatforms.includes(a.platform) &&
+        (a.isConnected || (a.accessToken && a.accessToken !== ""))
+    );
+    if (newPostStatus === "published" && connectedForTargets.length === 0) {
+      toast({
+        title: "Conecta tus redes primero",
+        description: "Ve a Cuentas → Login OAuth o Conectar demo, luego publica a una o varias.",
+        variant: "destructive",
+      });
+      setActiveTab("accounts");
+      return;
+    }
+
     setIsPublishing(true);
     try {
-      // Find account for the first selected platform
-      const account = accounts.find((a) => a.platform === newPostPlatforms[0]);
+      const account =
+        connectedForTargets[0] ||
+        accounts.find((a) => a.platform === newPostPlatforms[0]);
       if (!account) {
-        toast({ title: "Error", description: "No se encontró cuenta para la plataforma seleccionada", variant: "destructive" });
+        toast({
+          title: "Error",
+          description: "No se encontró cuenta para la plataforma seleccionada",
+          variant: "destructive",
+        });
         setIsPublishing(false);
         return;
       }
 
       if (newPostStatus === "published") {
-        // Publish immediately via automation service
         const res = await fetch("/api/publish", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -143,34 +190,44 @@ export default function SocialDashboard() {
             content: newPostContent,
             platforms: newPostPlatforms,
             mediaUrls: newPostMediaUrls.length ? newPostMediaUrls : undefined,
+            accountIds: connectedForTargets.map((a) => a.id),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "publish failed");
+
+        const allSuccess = Boolean(data.summary?.allSuccess);
+        const publishedCount = data.summary?.published ?? 0;
+
+        await fetch("/api/posts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: newPostContent,
+            platforms: newPostPlatforms,
+            status: publishedCount > 0 ? "published" : "failed",
+            accountId: account.id,
+            mediaUrls: newPostMediaUrls.length ? newPostMediaUrls : undefined,
           }),
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          const allSuccess = data.results?.every((r: { status: string }) => r.status === "published");
+        const detail = (data.results || [])
+          .map(
+            (r: { platform: string; status: string; mode?: string; error?: string }) =>
+              `${r.platform}: ${r.status}${r.mode ? ` (${r.mode})` : ""}${r.error ? ` — ${r.error}` : ""}`
+          )
+          .join(" · ");
 
-          // Save to DB
-          await fetch("/api/posts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              content: newPostContent,
-              platforms: newPostPlatforms,
-              status: allSuccess ? "published" : "failed",
-              accountId: account.id,
-              mediaUrls: newPostMediaUrls.length ? newPostMediaUrls : undefined,
-            }),
-          });
-
-          toast({
-            title: allSuccess ? "¡Publicado!" : "Publicación fallida",
-            description: allSuccess ? "Tu post ha sido publicado exitosamente" : "Hubo un error al publicar",
-            variant: allSuccess ? "default" : "destructive",
-          });
-        }
+        toast({
+          title: allSuccess
+            ? `¡Publicado en ${publishedCount} red${publishedCount === 1 ? "" : "es"}!`
+            : publishedCount > 0
+              ? `Parcial (${publishedCount}/${newPostPlatforms.length})`
+              : "Publicación fallida",
+          description: detail || "Revisa conexiones OAuth",
+          variant: publishedCount > 0 ? "default" : "destructive",
+        });
       } else {
-        // Save as draft or scheduled
         await fetch("/api/posts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -183,10 +240,12 @@ export default function SocialDashboard() {
             mediaUrls: newPostMediaUrls.length ? newPostMediaUrls : undefined,
           }),
         });
-
         toast({
           title: newPostStatus === "scheduled" ? "¡Programado!" : "¡Borrador guardado!",
-          description: newPostStatus === "scheduled" ? "Tu post ha sido programado" : "Tu borrador ha sido guardado",
+          description:
+            newPostStatus === "scheduled"
+              ? "Tu post ha sido programado"
+              : "Tu borrador ha sido guardado",
         });
       }
 
@@ -199,7 +258,11 @@ export default function SocialDashboard() {
       fetchAllData();
     } catch (error) {
       console.error(error);
-      toast({ title: "Error", description: "No se pudo crear el post", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "No se pudo crear el post",
+        variant: "destructive",
+      });
     } finally {
       setIsPublishing(false);
     }
@@ -775,16 +838,25 @@ export default function SocialDashboard() {
 
             {/* ── ACCOUNTS TAB ──────────────────────── */}
             <TabsContent value="accounts" className="space-y-6">
+              <ConnectNetworksPanel
+                accounts={accounts}
+                enabledPlatforms={enabledPlatforms}
+                onRefresh={fetchAllData}
+                toast={toast}
+              />
+
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold">Cuentas Conectadas</h2>
-                  <p className="text-sm text-muted-foreground">Gestiona tus cuentas de redes sociales</p>
+                  <p className="text-sm text-muted-foreground">
+                    Gestiona perfiles y publica a una o varias redes a la vez
+                  </p>
                 </div>
                 <Dialog open={newAccountOpen} onOpenChange={setNewAccountOpen}>
                   <DialogTrigger asChild>
                     <Button size="sm" className="gap-2">
                       <Plus className="h-4 w-4" />
-                      Conectar Cuenta
+                      Cuenta manual
                     </Button>
                   </DialogTrigger>
                 </Dialog>
@@ -1426,13 +1498,19 @@ export default function SocialDashboard() {
               />
 
               <div className="space-y-2">
-                <Label>Plataformas</Label>
+                <Label>Plataformas (una o varias a la vez)</Label>
                 <div className="flex items-center gap-2 flex-wrap">
                   {enabledPlatforms.map((platform) => {
                     const config = PLATFORM_CONFIG[platform];
                     if (!config) return null;
                     const Icon = config.icon;
                     const isSelected = newPostPlatforms.includes(platform);
+                    const connected = accounts.some(
+                      (a) =>
+                        a.platform === platform &&
+                        a.isActive &&
+                        (a.isConnected || Boolean(a.accessToken))
+                    );
                     return (
                       <Button
                         key={platform}
@@ -1444,10 +1522,24 @@ export default function SocialDashboard() {
                       >
                         <Icon className={`h-4 w-4 ${isSelected ? "" : config.color}`} />
                         {config.label}
+                        <span
+                          className={`ml-0.5 h-1.5 w-1.5 rounded-full ${
+                            connected ? "bg-emerald-400" : "bg-muted-foreground/40"
+                          }`}
+                          title={connected ? "Conectada" : "Sin conectar"}
+                        />
                       </Button>
                     );
                   })}
                 </div>
+                {newPostStatus === "published" && (
+                  <p className="text-xs text-muted-foreground">
+                    {newPostPlatforms.length > 1
+                      ? `Se publicará en paralelo a ${newPostPlatforms.length} redes.`
+                      : "Punto verde = red conectada (OAuth o demo)."}{" "}
+                    Sin conexión: ve a Cuentas.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
