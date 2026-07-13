@@ -52,7 +52,7 @@ yarn-error.log*
 next-env.d.ts
 `;
 
-const ENV_TEMPLATE = `# Database (elige UNA opción cloud en producción)
+const ENV_TEMPLATE = `# Database PostgreSQL (Neon / Supabase / Render)
 DATABASE_URL="postgresql://USER:PASS@HOST/DB?sslmode=require"
 
 # Auth
@@ -433,11 +433,10 @@ export function DeployGuide() {
               <code className="rounded bg-muted px-1">APP_URL</code> al dominio final y redeploy.
             </li>
             <li>
-              <strong className="text-foreground">Prisma:</strong> en producción con Neon/Supabase
-              cambia <code className="rounded bg-muted px-1">provider = &quot;postgresql&quot;</code> en{" "}
-              <code className="rounded bg-muted px-1">prisma/schema.prisma</code> (SQLite solo para
-              local). Luego <code className="rounded bg-muted px-1">npx prisma db push</code> contra
-              la URL cloud.
+              <strong className="text-foreground">Prisma:</strong> el schema ya usa{" "}
+              <code className="rounded bg-muted px-1">provider = &quot;postgresql&quot;</code>. Pon tu{" "}
+              <code className="rounded bg-muted px-1">DATABASE_URL</code> de Neon/Supabase y ejecuta{" "}
+              <code className="rounded bg-muted px-1">npx prisma db push</code>.
             </li>
             <li>SSL lo provisiona Vercel automáticamente (HTTPS).</li>
           </ol>

@@ -24,8 +24,12 @@ npm install
 
 # 3. Variables de entorno
 cp .env.example .env
-# Claves: DATABASE_URL, NEXTAUTH_URL, NEXTAUTH_SECRET,
-# ADMIN_EMAIL/PASSWORD, RETAIL_EMAIL/PASSWORD, ALLOW_SEED, SEED_SECRET
+# DATABASE_URL = PostgreSQL (Neon / Supabase / docker compose)
+# También: NEXTAUTH_*, ADMIN_*, RETAIL_*, ALLOW_SEED, SEED_SECRET
+
+# 3b. (Opcional) Postgres local con Docker
+# docker compose up -d
+# DATABASE_URL="postgresql://socialhub:socialhub@localhost:5432/socialhub?schema=public"
 
 # 4. Generar Prisma Client y sincronizar BD
 npm run db:push
@@ -85,7 +89,7 @@ socialhub/
 1. GitHub/GitLab + `.gitignore`
 2. Variables: `DATABASE_URL` cloud, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
 3. Vercel A→F (ver pestaña **Despliegue** en la app)
-4. DB: Neon / Supabase / Turso / PlanetScale (cambia `provider` Prisma si no es SQLite)
+4. DB: Neon / Supabase (Prisma ya está en `postgresql`)
 5. Dominio + DNS
 
 Comparativa: Vercel (recomendado), Netlify, Render, Railway.
