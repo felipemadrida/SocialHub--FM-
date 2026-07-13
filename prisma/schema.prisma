@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model SocialAccount {
+  id           String   @id @default(cuid())
+  platform     String   // "facebook", "instagram", "tiktok", "x"
+  accountName  String
+  avatarUrl    String?
+  accessToken  String?
+  refreshToken String?
+  isActive     Boolean  @default(true)
+  followers    Int      @default(0)
+  following    Int      @default(0)
+  posts        Int      @default(0)
+  engagement   Float    @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  scheduledPosts ScheduledPost[]
+  analytics     Analytics[]
+}
+
+model ScheduledPost {
+  id          String   @id @default(cuid())
+  content     String
+  mediaUrls   String?  // JSON string array of URLs
+  platforms   String   // JSON string array of platforms
+  status      String   @default("draft") // "draft", "scheduled", "published", "failed"
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  accountId   String
+  account     SocialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  reaches     Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AutomationRule {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  triggerType String   // "schedule", "engagement_threshold", "new_followers", "trending", "time_based"
+  triggerConfig String? // JSON string with trigger configuration
+  actionType  String   // "post", "repost", "dm", "follow_back", "like", "comment"
+  actionConfig  String? // JSON string with action configuration
+  platforms   String   // JSON string array of platforms
+  isActive    Boolean  @default(true)
+  lastRunAt   DateTime?
+  runCount    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Analytics {
+  id           String   @id @default(cuid())
+  accountId    String
+  account      SocialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  date         DateTime
+  platform     String
+  followers    Int      @default(0)
+  following    Int      @default(0)
+  posts        Int      @default(0)
+  likes        Int      @default(0)
+  comments     Int      @default(0)
+  shares       Int      @default(0)
+  reaches      Int      @default(0)
+  impressions  Int      @default(0)
+  engagement   Float    @default(0)
+  createdAt    DateTime @default(now())
+}
+
+model AppSettings {
+  id                   String   @id @default("default")
+  brandName            String   @default("SocialHub -FM-")
+  brandTagline         String   @default("Marketing Hub + IA Studio")
+  primaryColor         String   @default("oklch(0.92 0 0)")
+  timezone             String   @default("America/Santiago")
+  defaultPublishTime   String   @default("10:00")
+  enabledPlatforms     String   @default("[\"facebook\",\"instagram\",\"tiktok\",\"x\"]")
+  automationServiceUrl String   @default("http://localhost:3031")
+  mockPublish          Boolean  @default(true)
+  updatedAt            DateTime @updatedAt
+}
+
+model MarketingCampaign {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  objective   String   // awareness, engagement, conversion, traffic
+  budget      Float    @default(0)
+  status      String   @default("planning") // planning, active, paused, completed
+  platforms   String   // JSON array
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AiGeneration {
+  id        String   @id @default(cuid())
+  kind      String   // content | image
+  type      String   // post, caption, ad, hashtags, calendar, email, bio | banner, promo, stories, thumb
+  platform  String?
+  tone      String?
+  prompt    String?
+  title     String?
+  content   String
+  meta      String?  // JSON extras (hashtags, size, etc.)
+  imageUrl  String?
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("retail") // admin | retail
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
