@@ -2,11 +2,12 @@
 
 Dashboard en español para gestionar cuentas, contenido, agenda y automatización en **Facebook**, **Instagram**, **TikTok**, **X**, **LinkedIn**, **YouTube** y **Pinterest**.
 
-> Incluye **Marketing Hub**, **IA Studio**, pestaña **Despliegue** (guía interactiva) y seguridad **Admin / Retail** (NextAuth). Tema **Blanco | Negro**. Publicación simulada por defecto (`mockPublish`).
+> Incluye **Marketing Hub**, **IA Studio**, identidad de marca teal→violet, pestaña **Despliegue** (config real) y seguridad **Admin / Retail**. Tema **Blanco | Negro**. Publicación simulada por defecto (`mockPublish`).
 
 **Web (producción):** https://socialhub-fm.vercel.app  
+**Login:** https://socialhub-fm.vercel.app/login  
 **Repo:** https://github.com/felipemadrida/SocialHub--FM-  
-**DB:** PostgreSQL en Neon
+**DB:** PostgreSQL en Neon (`SocialHub-FM`)
 
 ---
 

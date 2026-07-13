@@ -32,6 +32,7 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+!.env.example
 
 # vercel
 .vercel
@@ -54,6 +55,8 @@ workspace-*
 socialhub-project/
 socialhub-project.zip
 *.db-journal
+hero-banner.png
+hero-banner.svg
 
 # sqlite databases
 db/
