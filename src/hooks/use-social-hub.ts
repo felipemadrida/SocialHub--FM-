@@ -24,7 +24,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultPublishTime: "10:00",
   enabledPlatforms: [...DEFAULT_ENABLED_PLATFORMS],
   automationServiceUrl: "http://localhost:3031",
-  mockPublish: true,
+  mockPublish: false,
   updatedAt: new Date().toISOString(),
 };
 

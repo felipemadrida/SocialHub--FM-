@@ -38,7 +38,7 @@ function toDTO(row: {
     enabledPlatforms:
       platforms.length > 0 ? platforms : [...DEFAULT_ENABLED_PLATFORMS],
     automationServiceUrl: row.automationServiceUrl,
-    mockPublish: row.mockPublish,
+    mockPublish: false,
     updatedAt: row.updatedAt.toISOString(),
   };
 }
@@ -50,7 +50,13 @@ export async function getOrCreateSettings(): Promise<AppSettingsDTO> {
       data: {
         id: "default",
         enabledPlatforms: JSON.stringify(DEFAULT_ENABLED_PLATFORMS),
+        mockPublish: false,
       },
+    });
+  } else if (row.mockPublish) {
+    row = await db.appSettings.update({
+      where: { id: "default" },
+      data: { mockPublish: false },
     });
   }
   return toDTO(row);

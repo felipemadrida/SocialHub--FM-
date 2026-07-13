@@ -143,7 +143,3 @@ export function appBaseUrl() {
 export function oauthCallbackUrl(platform: string) {
   return `${appBaseUrl()}/api/oauth/${platform}/callback`;
 }
-
-export function isDemoToken(token?: string | null) {
-  return Boolean(token?.startsWith("demo_"));
-}

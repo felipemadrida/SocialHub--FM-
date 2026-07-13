@@ -91,11 +91,7 @@ function LoginForm() {
           </div>
           {error ? (
             <p className="text-sm text-red-400">{error}</p>
-          ) : (
-            <p className="text-xs text-slate-400">
-              Demo: admin@socialhub.local / Admin123! · retail@socialhub.local / Retail123!
-            </p>
-          )}
+          ) : null}
           <Button type="submit" className="brand-gradient-btn w-full" disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Iniciar sesión"}
           </Button>

@@ -38,7 +38,8 @@ export async function PUT(request: Request) {
     if (data.automationServiceUrl !== undefined) {
       updateData.automationServiceUrl = data.automationServiceUrl;
     }
-    if (data.mockPublish !== undefined) updateData.mockPublish = data.mockPublish;
+    // Production: always live publish
+    updateData.mockPublish = false;
 
     const row = await db.appSettings.update({
       where: { id: "default" },

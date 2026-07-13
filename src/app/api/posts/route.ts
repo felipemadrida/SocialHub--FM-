@@ -84,7 +84,7 @@ export async function POST(request: Request) {
             scheduledAt: scheduledAt.toISOString(),
             content: data.content,
             mediaUrls: data.mediaUrls,
-            mockPublish: settings.mockPublish,
+            mockPublish: false,
           }),
         });
       } catch (e) {

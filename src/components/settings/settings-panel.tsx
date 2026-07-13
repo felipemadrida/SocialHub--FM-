@@ -13,7 +13,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -163,7 +162,7 @@ export function SettingsPanel({
         defaultPublishTime: draft.defaultPublishTime,
         enabledPlatforms: draft.enabledPlatforms,
         automationServiceUrl: draft.automationServiceUrl,
-        mockPublish: draft.mockPublish,
+        mockPublish: false,
       });
       toast({ title: "Configuración guardada", description: "Los cambios se aplicaron correctamente" });
       await onRefresh();
@@ -339,18 +338,6 @@ export function SettingsPanel({
                   onChange={(e) =>
                     setDraft({ ...draft, automationServiceUrl: e.target.value })
                   }
-                />
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <p className="text-sm font-medium">Publicación simulada</p>
-                  <p className="text-xs text-muted-foreground">
-                    Desactiva solo cuando conectes APIs reales (aún no implementado)
-                  </p>
-                </div>
-                <Switch
-                  checked={draft.mockPublish}
-                  onCheckedChange={(v) => setDraft({ ...draft, mockPublish: v })}
                 />
               </div>
             </CardContent>

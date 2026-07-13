@@ -155,12 +155,12 @@ export default function SocialDashboard() {
       (a) =>
         a.isActive &&
         newPostPlatforms.includes(a.platform) &&
-        (a.isConnected || (a.accessToken && a.accessToken !== ""))
+        a.isConnected === true
     );
     if (newPostStatus === "published" && connectedForTargets.length === 0) {
       toast({
         title: "Conecta tus redes primero",
-        description: "Ve a Cuentas → Login OAuth o Conectar demo, luego publica a una o varias.",
+        description: "Ve a Cuentas → Login OAuth, luego publica a una o varias redes.",
         variant: "destructive",
       });
       setActiveTab("accounts");
@@ -1536,7 +1536,7 @@ export default function SocialDashboard() {
                   <p className="text-xs text-muted-foreground">
                     {newPostPlatforms.length > 1
                       ? `Se publicará en paralelo a ${newPostPlatforms.length} redes.`
-                      : "Punto verde = red conectada (OAuth o demo)."}{" "}
+                      : "Punto verde = red conectada con OAuth."}{" "}
                     Sin conexión: ve a Cuentas.
                   </p>
                 )}

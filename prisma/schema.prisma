@@ -93,7 +93,7 @@ model AppSettings {
   defaultPublishTime   String   @default("10:00")
   enabledPlatforms     String   @default("[\"facebook\",\"instagram\",\"tiktok\",\"x\"]")
   automationServiceUrl String   @default("http://localhost:3031")
-  mockPublish          Boolean  @default(true)
+  mockPublish          Boolean  @default(false)
   updatedAt            DateTime @updatedAt
 }
 

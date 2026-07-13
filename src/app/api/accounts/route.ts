@@ -14,14 +14,15 @@ export async function GET() {
         _count: { select: { scheduledPosts: true, analytics: true } },
       },
     });
-    // Don't leak raw tokens to the browser — expose connection status only
-    const safe = accounts.map((a) => ({
-      ...a,
-      accessToken: a.accessToken ? "***" : null,
-      refreshToken: a.refreshToken ? "***" : null,
-      isConnected: Boolean(a.accessToken),
-      isDemo: Boolean(a.accessToken?.startsWith("demo_")),
-    }));
+    const safe = accounts.map((a) => {
+      const isDemo = Boolean(a.accessToken?.startsWith("demo_"));
+      return {
+        ...a,
+        accessToken: a.accessToken && !isDemo ? "***" : null,
+        refreshToken: a.refreshToken && !isDemo ? "***" : null,
+        isConnected: Boolean(a.accessToken && !isDemo),
+      };
+    });
     return NextResponse.json(safe);
   } catch (error) {
     console.error("Error fetching accounts:", error);
@@ -38,6 +39,12 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
+    if (data.accessToken?.startsWith("demo_")) {
+      return NextResponse.json(
+        { error: "Tokens demo no permitidos. Usa Login OAuth." },
+        { status: 400 }
+      );
+    }
     const account = await db.socialAccount.create({
       data: {
         platform: data.platform,

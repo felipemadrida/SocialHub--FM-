@@ -25,8 +25,7 @@ export async function GET(_request: Request, ctx: Ctx) {
       return NextResponse.json(
         {
           error: "OAuth no configurado",
-          hint: `Define ${provider.envId} y ${provider.envSecret} en .env`,
-          demo: true,
+          hint: `Define ${provider.envId} y ${provider.envSecret} en el entorno`,
         },
         { status: 400 }
       );

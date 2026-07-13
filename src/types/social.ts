@@ -20,7 +20,6 @@ export interface SocialAccount {
   connectedAt?: string | null;
   isActive: boolean;
   isConnected?: boolean;
-  isDemo?: boolean;
   followers: number;
   following: number;
   posts: number;

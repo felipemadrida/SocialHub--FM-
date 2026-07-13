@@ -126,7 +126,7 @@ const CHECKLIST = [
   { label: "DATABASE_URL Neon (PostgreSQL) en Vercel", done: true },
   { label: "Variables: DATABASE_URL, NEXTAUTH_*, APP_URL, ADMIN_*, RETAIL_*", done: true },
   { label: "ALLOW_SEED=false en producción", done: true },
-  { label: "Usuarios admin/retail (cambiar claves demo en prod)", done: false },
+  { label: "Usuarios admin/retail (cambiar claves de prueba en prod)", done: false },
   { label: "Dominio personalizado (opcional; ahora *.vercel.app)", done: false },
 ];
 

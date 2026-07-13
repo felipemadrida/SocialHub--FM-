@@ -1,5 +1,4 @@
 import { db } from "@/lib/db";
-import { isDemoToken } from "@/lib/oauth/providers";
 import type { PlatformId } from "@/lib/platforms";
 
 export type PublishTargetResult = {
@@ -10,7 +9,7 @@ export type PublishTargetResult = {
   postId?: string;
   publishedAt?: string;
   error?: string;
-  mode?: "mock" | "live" | "demo";
+  mode?: "live";
   engagement?: {
     likes: number;
     comments: number;
@@ -39,38 +38,8 @@ function parseMeta(raw: string | null): Record<string, unknown> {
   }
 }
 
-async function simulatePublish(
-  platform: string,
-  account: AccountRow,
-  mode: "mock" | "demo"
-): Promise<PublishTargetResult> {
-  await new Promise((r) => setTimeout(r, 300 + Math.random() * 700));
-  const ok = Math.random() > 0.05;
-  if (!ok) {
-    return {
-      platform,
-      accountId: account.id,
-      accountName: account.accountName,
-      status: "failed",
-      error: `Rate limit simulado en ${platform}`,
-      mode,
-    };
-  }
-  return {
-    platform,
-    accountId: account.id,
-    accountName: account.accountName,
-    status: "published",
-    postId: `${platform}_${Date.now().toString(36)}`,
-    publishedAt: new Date().toISOString(),
-    mode,
-    engagement: {
-      likes: Math.floor(Math.random() * 400),
-      comments: Math.floor(Math.random() * 80),
-      shares: Math.floor(Math.random() * 40),
-      reaches: Math.floor(Math.random() * 4000),
-    },
-  };
+function isInvalidToken(token?: string | null) {
+  return !token || token.startsWith("demo_");
 }
 
 /** Facebook Page feed publish via Graph API */
@@ -367,17 +336,16 @@ async function publishLive(
 }
 
 /**
- * Publish content to one or many platforms at once.
+ * Publish content to one or many platforms at once (live APIs only).
  * Resolves the best active connected account per platform.
  */
 export async function publishToPlatforms(opts: {
   content: string;
   platforms: string[];
   mediaUrls?: string[];
-  mockPublish: boolean;
   accountIds?: string[];
 }): Promise<PublishTargetResult[]> {
-  const { content, platforms, mediaUrls, mockPublish, accountIds } = opts;
+  const { content, platforms, mediaUrls, accountIds } = opts;
 
   const accounts = await db.socialAccount.findMany({
     where: {
@@ -392,37 +360,26 @@ export async function publishToPlatforms(opts: {
 
   for (const platform of platforms) {
     const account =
-      accounts.find((a) => a.platform === platform && a.accessToken) ||
+      accounts.find((a) => a.platform === platform && a.accessToken && !a.accessToken.startsWith("demo_")) ||
       accounts.find((a) => a.platform === platform);
 
     if (!account) {
       results.push({
         platform,
         status: "failed",
-        error: `No hay cuenta conectada para ${platform}. Conéctala en Cuentas.`,
+        error: `No hay cuenta conectada para ${platform}. Conéctala con OAuth en Cuentas.`,
       });
       continue;
     }
 
-    if (!account.accessToken) {
+    if (isInvalidToken(account.accessToken)) {
       results.push({
         platform,
         accountId: account.id,
         accountName: account.accountName,
         status: "failed",
-        error: "Cuenta sin token. Inicia sesión OAuth en Cuentas.",
+        error: "Cuenta sin OAuth válido. Inicia sesión en Cuentas.",
       });
-      continue;
-    }
-
-    if (mockPublish || isDemoToken(account.accessToken)) {
-      results.push(
-        await simulatePublish(
-          platform,
-          account,
-          isDemoToken(account.accessToken) ? "demo" : "mock"
-        )
-      );
       continue;
     }
 

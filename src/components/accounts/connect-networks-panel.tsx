@@ -62,34 +62,16 @@ export function ConnectNetworksPanel({
     accounts.find((a) => a.platform === platform && a.isActive);
 
   const connectOAuth = (platform: string) => {
-    // Full redirect to provider
-    window.location.href = `/api/oauth/${platform}/start`;
-  };
-
-  const connectDemo = async (platform: string) => {
-    setBusy(platform);
-    try {
-      const res = await fetch("/api/oauth/connect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ platform, mode: "demo" }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "connect failed");
+    const provider = providers.find((p) => p.platform === platform);
+    if (!provider?.configured) {
       toast({
-        title: `Conectado (demo): ${PLATFORM_CONFIG[platform as PlatformId]?.label || platform}`,
-        description: "Listo para publicar a esta red (modo demo/mock)",
-      });
-      onRefresh();
-    } catch (e) {
-      toast({
-        title: "No se pudo conectar",
-        description: e instanceof Error ? e.message : "Error",
+        title: "OAuth no configurado",
+        description: `Define ${provider?.envId || "CLIENT_ID"} y ${provider?.envSecret || "CLIENT_SECRET"} en el entorno.`,
         variant: "destructive",
       });
-    } finally {
-      setBusy(null);
+      return;
     }
+    window.location.href = `/api/oauth/${platform}/start`;
   };
 
   const disconnect = async (accountId: string, platform: string) => {
@@ -117,11 +99,11 @@ export function ConnectNetworksPanel({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <LogIn className="h-4 w-4 text-teal-500" />
-          Login / Conectar redes
+          Conectar redes (OAuth)
         </CardTitle>
         <CardDescription>
-          Inicia sesión en cada red desde la app. Luego publica a una o varias al
-          mismo tiempo.
+          Inicia sesión real en cada red. Luego publica a una o varias al mismo
+          tiempo.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -130,12 +112,8 @@ export function ConnectNetworksPanel({
           const Icon = conf.icon;
           const acc = accountFor(platform);
           const provider = providers.find((p) => p.platform === platform);
-          const connected = Boolean(
-            acc &&
-              (acc.isConnected === true ||
-                (acc.accessToken && acc.accessToken !== "" && acc.isConnected !== false))
-          );
-          const isDemo = Boolean(acc?.isDemo);
+          const connected = Boolean(acc?.isConnected);
+          const configured = Boolean(provider?.configured);
 
           return (
             <div
@@ -148,16 +126,17 @@ export function ConnectNetworksPanel({
                 </div>
                 <div className="min-w-0">
                   <p className="font-medium text-sm">{conf.label}</p>
-                  {acc ? (
+                  {acc && connected ? (
                     <p className="truncate text-xs text-muted-foreground">
-                      {acc.accountName}
-                      {isDemo ? " · demo" : connected ? " · conectada" : ""}
+                      {acc.accountName} · conectada
+                    </p>
+                  ) : configured ? (
+                    <p className="text-xs text-muted-foreground">
+                      OAuth listo — inicia sesión con tu cuenta
                     </p>
                   ) : (
-                    <p className="text-xs text-muted-foreground">
-                      {provider?.configured
-                        ? "OAuth listo — inicia sesión"
-                        : "Sin API keys — puedes usar conexión demo"}
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      Falta configurar {provider?.envId} / {provider?.envSecret}
                     </p>
                   )}
                 </div>
@@ -172,7 +151,7 @@ export function ConnectNetworksPanel({
                     <AlertCircle className="h-3 w-3" /> Sin conectar
                   </Badge>
                 )}
-                {provider?.configured && !connected && (
+                {configured && (
                   <Button
                     size="sm"
                     className="brand-gradient-btn gap-1.5"
@@ -184,23 +163,7 @@ export function ConnectNetworksPanel({
                     ) : (
                       <Link2 className="h-3.5 w-3.5" />
                     )}
-                    Login OAuth
-                  </Button>
-                )}
-                {!connected && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5"
-                    disabled={busy === platform}
-                    onClick={() => connectDemo(platform)}
-                  >
-                    {busy === platform ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <LogIn className="h-3.5 w-3.5" />
-                    )}
-                    {provider?.configured ? "Demo" : "Conectar demo"}
+                    {connected ? "Reconectar" : "Login OAuth"}
                   </Button>
                 )}
                 {acc && (
@@ -219,9 +182,9 @@ export function ConnectNetworksPanel({
           );
         })}
         <p className="text-[11px] text-muted-foreground pt-1">
-          Live OAuth: configura META_*, X_*, LINKEDIN_*, TIKTOK_*, GOOGLE_*,
-          PINTEREST_* en .env. Sin keys, usa «Conectar demo» y publica en multi-red
-          (mock/demo).
+          Producción: configura META_*, X_*, LINKEDIN_*, TIKTOK_*, GOOGLE_* y
+          PINTEREST_* en el entorno, con callbacks{" "}
+          <code className="text-[10px]">/api/oauth/&#123;red&#125;/callback</code>.
         </p>
       </CardContent>
     </Card>

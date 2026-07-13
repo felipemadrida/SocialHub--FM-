@@ -47,7 +47,7 @@ npm run dev
 npm run dev:automation
 ```
 
-### Acceso demo (se crean al primer login)
+### Acceso (usuarios iniciales)
 
 | Rol | Email | Password |
 |-----|-------|----------|
@@ -56,9 +56,8 @@ npm run dev:automation
 
 - **Admin:** escritura en Config, seed, usuarios, borrados críticos, pestaña Admin
 - **Retail:** operación diaria (contenido, agenda, marketing, IA)
+- **Redes:** Cuentas → Login OAuth (requiere `META_*`, `X_*`, etc. en el entorno)
 - Guía de deploy: pestaña **Despliegue**
-
-Sin cuentas sociales, seed demo vía `POST /api/seed` (admin + `ALLOW_SEED=true` + header `x-seed-secret`).
 
 ---
 

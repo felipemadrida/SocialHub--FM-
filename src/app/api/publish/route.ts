@@ -1,7 +1,6 @@
 import { publishSchema, zodErrorResponse, platformSchema } from "@/lib/validations";
 import { publishToPlatforms } from "@/lib/publish/multi-platform";
 import { requireSession } from "@/lib/api-auth";
-import { getOrCreateSettings } from "@/lib/settings";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -11,8 +10,7 @@ const multiPublishSchema = publishSchema.extend({
 });
 
 /**
- * Publish content to one or many platforms at the same time.
- * Uses connected SocialAccount tokens (live or demo/mock).
+ * Publish content to one or many platforms at the same time (live OAuth only).
  */
 export async function POST(request: Request) {
   const { error } = await requireSession();
@@ -25,12 +23,10 @@ export async function POST(request: Request) {
       return NextResponse.json(zodErrorResponse(parsed.error), { status: 400 });
     }
 
-    const settings = await getOrCreateSettings();
     const results = await publishToPlatforms({
       content: parsed.data.content,
       platforms: parsed.data.platforms,
       mediaUrls: parsed.data.mediaUrls,
-      mockPublish: settings.mockPublish,
       accountIds: parsed.data.accountIds,
     });
 
@@ -45,7 +41,6 @@ export async function POST(request: Request) {
         failed: results.filter((r) => r.status === "failed").length,
         allSuccess,
         anySuccess,
-        mockPublish: settings.mockPublish,
       },
     });
   } catch (err) {
