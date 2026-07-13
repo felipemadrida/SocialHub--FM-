@@ -1,108 +1,83 @@
 # SocialHub -FM-
 
-Dashboard en español para gestionar cuentas, contenido, agenda y automatización en **Facebook**, **Instagram**, **TikTok**, **X**, **LinkedIn**, **YouTube** y **Pinterest**.
+Dashboard en español para gestionar **cuentas OAuth**, contenido, Studio Creativo, agenda, marketing e IA en **Facebook**, **Instagram**, **TikTok**, **X**, **LinkedIn**, **YouTube** y **Pinterest**.
 
-> Incluye **Marketing Hub**, **IA Studio**, identidad de marca teal→violet, pestaña **Despliegue** (config real) y seguridad **Admin / Retail**. Tema **Blanco | Negro**. Publicación simulada por defecto (`mockPublish`).
+> Producción: publicación **live** con Login OAuth (sin demo). Roles **Admin / Retail**. Marca teal→violet. Tema **Blanco | Negro**.
 
-**Web (producción):** https://socialhub-fm.vercel.app  
-**Login:** https://socialhub-fm.vercel.app/login  
+**Web:** https://socialhub-fm.vercel.app · **Login:** /login  
 **Repo:** https://github.com/felipemadrida/SocialHub--FM-  
-**DB:** PostgreSQL en Neon (`SocialHub-FM`)
+**DB:** PostgreSQL en Neon (`SocialHub-FM`) · **Versión:** 0.6.2
+
+---
+
+## Qué incluye (v0.6+)
+
+| Módulo | Descripción |
+|--------|-------------|
+| **Cuentas OAuth** | Login real por red → publicar a una o varias a la vez |
+| **Studio Creativo** | Biblioteca de medios, upload, adjuntar a posts |
+| **Marketing Hub** | Campañas y branding |
+| **IA Studio** | Generación de copy |
+| **Despliegue** | Guía interactiva + config de producción |
+| **Auth** | NextAuth credentials (Admin / Retail) |
 
 ---
 
 ## Requisitos
 
-- **Node.js** 18+ (recomendado) o **Bun** 1.0+
-- **npm**, **yarn** o **bun**
+- **Node.js** 18+
+- PostgreSQL (Neon, Supabase o Docker local)
 
 ---
 
 ## Instalación rápida
 
 ```bash
-# 1. Entrar al directorio del proyecto
-cd socialhub
-
-# 2. Instalar dependencias
 npm install
-
-# 3. Variables de entorno
 cp .env.example .env
-# DATABASE_URL = PostgreSQL (Neon / Supabase / docker compose)
-# También: NEXTAUTH_*, ADMIN_*, RETAIL_*, ALLOW_SEED, SEED_SECRET
+# Edita DATABASE_URL, NEXTAUTH_SECRET, APP_URL / NEXTAUTH_URL
 
-# 3b. (Opcional) Postgres local con Docker
+# Postgres local (opcional):
 # docker compose up -d
 # DATABASE_URL="postgresql://socialhub:socialhub@localhost:5432/socialhub?schema=public"
 
-# 4. Generar Prisma Client y sincronizar BD
 npm run db:push
-
-# 5. Servidor de desarrollo
 npm run dev
-# App: http://localhost:3001 → redirige a /login
-
-# 6. (Opcional) servicio de automatización mock
-npm run dev:automation
+# → http://localhost:3001/login
 ```
 
-### Acceso (usuarios iniciales)
+### Acceso inicial
 
 | Rol | Email | Password |
 |-----|-------|----------|
 | Admin | `admin@socialhub.local` | `Admin123!` |
 | Retail | `retail@socialhub.local` | `Retail123!` |
 
-- **Admin:** escritura en Config, seed, usuarios, borrados críticos, pestaña Admin
-- **Retail:** operación diaria (contenido, agenda, marketing, IA)
-- **Redes:** Cuentas → Login OAuth (requiere `META_*`, `X_*`, etc. en el entorno)
-- Guía de deploy: pestaña **Despliegue**
+Cambia estas claves en producción (`ADMIN_*` / `RETAIL_*`).
+
+- **Admin:** Config, seed, usuarios, Admin
+- **Retail:** contenido, agenda, marketing, IA
+- **Redes:** Cuentas → Login OAuth
 
 ---
 
-## Estructura del proyecto
+## OAuth (obligatorio para publicar)
+
+Callbacks (`APP_URL`):
 
 ```
-socialhub/
-├── src/
-│   ├── app/
-│   │   ├── page.tsx                 # Dashboard (tabs)
-│   │   ├── login/page.tsx           # Login Admin/Retail
-│   │   ├── layout.tsx               # Layout + SessionProvider + tema
-│   │   ├── globals.css
-│   │   └── api/
-│   │       ├── auth/[...nextauth]/  # NextAuth credentials
-│   │       ├── users/               # CRUD usuarios (admin)
-│   │       ├── accounts/, posts/, …
-│   │       ├── campaigns/, ai/, settings/, seed/
-│   ├── middleware.ts                # Auth JWT + roles en APIs
-│   ├── components/
-│   │   ├── deploy/deploy-guide.tsx  # Guía Despliegue interactiva
-│   │   ├── admin/                   # Panel usuarios
-│   │   ├── marketing/, settings/, ui/
-│   ├── lib/
-│   │   ├── auth.ts, api-auth.ts, ensure-users.ts
-│   │   ├── platforms.ts, …
+{APP_URL}/api/oauth/facebook/callback
+{APP_URL}/api/oauth/instagram/callback
+{APP_URL}/api/oauth/tiktok/callback
+{APP_URL}/api/oauth/x/callback
+{APP_URL}/api/oauth/linkedin/callback
+{APP_URL}/api/oauth/youtube/callback
+{APP_URL}/api/oauth/pinterest/callback
 ```
 
----
+Variables: `META_*`, `X_*`, `LINKEDIN_*`, `TIKTOK_*`, `GOOGLE_*`, `PINTEREST_*` (ver `.env.example`).
 
-## Despliegue (resumen)
-
-1. GitHub/GitLab + `.gitignore`
-2. Variables: `DATABASE_URL` cloud, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`
-3. Vercel A→F (ver pestaña **Despliegue** en la app)
-4. DB: Neon / Supabase (Prisma ya está en `postgresql`)
-5. Dominio + DNS
-
-Comparativa: Vercel (recomendado), Netlify, Render, Railway.
-
----
-
-## Personalización
-
-Usa la pestaña **Config** (no edites `page.tsx` a mano): marca, plataformas, agenda, automatización.
+Live: Facebook, Instagram, X, LinkedIn.
 
 ---
 
@@ -110,13 +85,24 @@ Usa la pestaña **Config** (no edites `page.tsx` a mano): marca, plataformas, ag
 
 | Script | Descripción |
 |--------|-------------|
-| `npm run dev` | Next.js en puerto **3001** |
+| `npm run dev` | App en **3001** |
 | `npm run build` / `start` | Producción local |
-| `npm run db:push` | Sincroniza schema Prisma |
-| `npm run dev:automation` | Mock publish en **3031** |
+| `npm run db:push` | Schema Prisma |
+| `npm run purge:demo` | Limpia cuentas placeholder/`demo_*` |
+| `npm run setup` | install + generate + db:push |
+| `npm run dev:automation` | Sidecar agenda (**3031**) |
+
+---
+
+## Despliegue
+
+1. GitHub + Vercel (proyecto `socialhub-fm`)
+2. Env: `DATABASE_URL`, `NEXTAUTH_*`, `APP_URL`, OAuth keys
+3. `ALLOW_SEED=false` en prod
+4. Guía: pestaña **Despliegue** en la app
 
 ---
 
 ## Licencia
 
-Uso privado / educativo del proyecto SocialHub -FM-.
+Uso privado / educativo — SocialHub -FM-.

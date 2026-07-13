@@ -1,7 +1,8 @@
 {
   "name": "socialhub",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "private": true,
+  "description": "SocialHub -FM- — OAuth multi-red, Studio Creativo, Marketing Hub + IA",
   "scripts": {
     "dev": "next dev -p 3001",
     "dev:automation": "npm run --prefix mini-services/social-automation dev",
@@ -12,6 +13,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
+    "purge:demo": "node scripts/purge-demo-accounts.mjs",
+    "setup": "npm install && prisma generate && prisma db push",
     "postinstall": "prisma generate"
   },
   "dependencies": {
