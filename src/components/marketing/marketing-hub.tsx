@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Megaphone, Plus, Trash2, Loader2, ImageIcon } from "lucide-react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,10 +20,12 @@ import {
   CAMPAIGN_OBJECTIVE_LABELS,
   CAMPAIGN_STATUSES,
   CAMPAIGN_STATUS_LABELS,
-  MARKETING_ASSETS,
 } from "@/lib/marketing";
 import { parseJsonArray } from "@/lib/format";
 import { PLATFORM_CONFIG } from "@/lib/platforms";
+import { BrandHero } from "@/components/brand/brand-hero";
+import { BrandGallery } from "@/components/brand/brand-gallery";
+import { BrandIdentityCard } from "@/components/brand/brand-identity-card";
 
 type Campaign = {
   id: string;
@@ -137,35 +139,17 @@ export function MarketingHub({
 
   return (
     <div className="space-y-6">
-      <div
-        className="relative overflow-hidden rounded-2xl border bg-card"
-        style={{
-          backgroundImage: "url(/marketing/hero-banner.svg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+      <BrandHero
+        brandName={brandName}
+        onOpenAiStudio={onOpenAiStudio}
+        onScrollCampaigns={() => {
+          document.getElementById("nueva-campana")?.scrollIntoView({ behavior: "smooth" });
         }}
-      >
-        <div className="bg-black/55 dark:bg-black/60 p-6 sm:p-10 text-white">
-          <Badge className="mb-3 bg-white/15 text-white hover:bg-white/20">
-            Marketing Hub
-          </Badge>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            {brandName}: ahora con Marketing Hub + IA Studio
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-white/80">
-            Campañas, biblioteca de contenido IA y assets promocionales para
-            producción.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Button onClick={onOpenAiStudio} className="gap-2">
-              <Megaphone className="h-4 w-4" />
-              Abrir IA Studio
-            </Button>
-          </div>
-        </div>
-      </div>
+      />
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <BrandIdentityCard />
+        <div id="nueva-campana">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Nueva campaña</CardTitle>
@@ -218,40 +202,16 @@ export function MarketingHub({
                 );
               })}
             </div>
-            <Button onClick={createCampaign} disabled={saving} className="gap-2">
+            <Button onClick={createCampaign} disabled={saving} className="brand-gradient-btn gap-2">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
               Crear campaña
             </Button>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ImageIcon className="h-4 w-4" />
-              Assets promocionales
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid sm:grid-cols-2 gap-3">
-            {MARKETING_ASSETS.map((asset) => (
-              <a
-                key={asset.id}
-                href={asset.file}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg border overflow-hidden hover:border-primary transition-colors"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={asset.file} alt={asset.title} className="w-full h-24 object-cover bg-muted" />
-                <div className="p-2">
-                  <p className="text-xs font-medium">{asset.title}</p>
-                  <p className="text-[11px] text-muted-foreground">{asset.description}</p>
-                </div>
-              </a>
-            ))}
-          </CardContent>
-        </Card>
+        </div>
       </div>
+
+      <BrandGallery />
 
       <div className="space-y-3">
         <h3 className="text-sm font-semibold">Campañas</h3>

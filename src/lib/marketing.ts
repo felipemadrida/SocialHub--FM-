@@ -115,10 +115,28 @@ export const IMAGE_SIZE_DIMS: Record<
 
 export const MARKETING_ASSETS = [
   {
-    id: "hero-banner",
-    file: "/marketing/hero-banner.svg",
-    title: "Hero Banner",
-    description: "Banner principal SocialHub -FM-",
+    id: "logo",
+    file: "/brand/socialhub_logo.png",
+    title: "Logo principal",
+    description: "Nodos interconectados teal→violet",
+  },
+  {
+    id: "banner",
+    file: "/brand/socialhub_banner.png",
+    title: "Banner horizontal",
+    description: "Banner web y redes",
+  },
+  {
+    id: "hero",
+    file: "/brand/socialhub_hero_bg.png",
+    title: "Hero background",
+    description: "Fondo oscuro con nodos",
+  },
+  {
+    id: "promo",
+    file: "/brand/socialhub_promo.png",
+    title: "Promo analytics",
+    description: "Métricas y dashboards",
   },
   {
     id: "scheduler-preview",
@@ -139,9 +157,9 @@ export const MARKETING_ASSETS = [
     description: "Lanzamiento de campaña",
   },
   {
-    id: "app-logo",
-    file: "/marketing/app-logo.svg",
-    title: "App Logo",
-    description: "Logo SocialHub -FM-",
+    id: "favicon",
+    file: "/brand/socialhub_favicon.png",
+    title: "Favicon",
+    description: "Ícono minimalista",
   },
 ] as const;

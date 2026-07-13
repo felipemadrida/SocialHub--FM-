@@ -426,15 +426,19 @@ export default function SocialDashboard() {
     <TooltipProvider>
       <div className="min-h-screen flex flex-col bg-background">
         {/* HEADER */}
+        <div className="brand-top-line" />
         <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 dark:border-white/10 dark:bg-black/70 dark:supports-[backdrop-filter]:bg-black/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-primary text-primary-foreground">
-                  <Globe className="h-5 w-5" />
-                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/brand/socialhub_logo.png"
+                  alt="SocialHub"
+                  className="h-9 w-9 rounded-lg object-cover ring-1 ring-white/10"
+                />
                 <div>
-                  <h1 className="text-lg font-bold tracking-tight">{settings.brandName}</h1>
+                  <h1 className="brand-gradient-text text-lg font-bold tracking-tight">{settings.brandName}</h1>
                   <p className="text-xs text-muted-foreground hidden sm:block">{settings.brandTagline}</p>
                 </div>
               </div>
@@ -466,7 +470,7 @@ export default function SocialDashboard() {
                   }
                 }}>
                   <DialogTrigger asChild>
-                    <Button size="sm" className="gap-2">
+                    <Button size="sm" className="brand-gradient-btn gap-2">
                       <Plus className="h-4 w-4" />
                       <span className="hidden sm:inline">Nuevo Post</span>
                     </Button>
@@ -1320,11 +1324,14 @@ export default function SocialDashboard() {
 
         {/* FOOTER */}
         <footer className="mt-auto border-t bg-background/80 dark:border-white/10 dark:bg-black/40">
+          <div className="brand-bottom-line" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <p className="flex items-center gap-1.5">
-                <Globe className="h-3.5 w-3.5" />
-                {settings.brandName} — {settings.brandTagline}
+              <p className="flex items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/brand/socialhub_favicon.png" alt="" className="h-4 w-4 rounded-sm object-cover" />
+                <span className="brand-gradient-text font-semibold">{settings.brandName}</span>
+                <span>— {settings.brandTagline}</span>
               </p>
               <p>{accounts.length} cuentas · {enabledPlatforms.length} plataformas activas</p>
             </div>

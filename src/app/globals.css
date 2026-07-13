@@ -140,3 +140,40 @@
       linear-gradient(180deg, oklch(0.1 0 0), oklch(0.07 0 0));
   }
 }
+
+/* ─── SocialHub brand (teal → violet) ─── */
+:root {
+  --brand-teal: #14b8a6;
+  --brand-violet: #8b5cf6;
+  --brand-navy: #0f172a;
+  --brand-emerald: #10b981;
+  --brand-amber: #f59e0b;
+  --brand-gradient: linear-gradient(135deg, var(--brand-teal), var(--brand-violet));
+}
+
+@layer utilities {
+  .brand-gradient-text {
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .brand-gradient-btn {
+    background: var(--brand-gradient) !important;
+    color: #fff !important;
+    border: none !important;
+  }
+  .brand-gradient-btn:hover {
+    filter: brightness(1.08);
+  }
+  .brand-top-line {
+    height: 3px;
+    width: 100%;
+    background: var(--brand-gradient);
+  }
+  .brand-bottom-line {
+    height: 2px;
+    width: 100%;
+    background: var(--brand-gradient);
+  }
+}

@@ -30,7 +30,13 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "SocialHub -FM-" }],
   icons: {
-    icon: "/logo.svg",
+    icon: [{ url: "/favicon.png", type: "image/png" }],
+    apple: "/brand/socialhub_logo.png",
+  },
+  openGraph: {
+    title: "SocialHub -FM-",
+    description: "Marketing Hub + IA Studio",
+    images: ["/brand/socialhub_banner.png"],
   },
 };
 

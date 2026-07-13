@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   outputFileTracingExcludes: {
     "*": ["./mini-services/**/*"],
   },
+  images: {
+    unoptimized: false,
+    remotePatterns: [],
+  },
 };
 
 export default nextConfig;
