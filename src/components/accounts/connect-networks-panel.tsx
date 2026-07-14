@@ -20,6 +20,7 @@ import {
   fbLogin,
   loadFacebookSdk,
 } from "@/lib/facebook-sdk";
+import { FacebookLoginButton } from "@/components/accounts/facebook-login-button";
 
 type ProviderInfo = {
   platform: PlatformId;
@@ -119,6 +120,37 @@ export function ConnectNetworksPanel({
     if (!res.ok) throw new Error(data.error || data.detail || "No se pudo guardar el token");
     return data;
   };
+
+  /** Called by Meta: onlogin="checkLoginState();" after fb:login-button */
+  const checkLoginState = useCallback(async () => {
+    setBusy("facebook");
+    try {
+      const status = await fbGetLoginStatus(true);
+      if (status.status === "connected" && status.authResponse?.accessToken) {
+        await persistFacebookToken(status.authResponse);
+        toast({
+          title: "Facebook conectado",
+          description: `userID ${status.authResponse.userID || ""}`.trim(),
+        });
+        onRefresh();
+        return;
+      }
+      toast({
+        title: "Sesión Facebook no conectada",
+        description: `status: ${status.status}`,
+        variant: "destructive",
+      });
+    } catch (e) {
+      toast({
+        title: "Error al leer sesión FB",
+        description: e instanceof Error ? e.message : "Error",
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onRefresh, toast]);
 
   /** Facebook JS SDK: getLoginStatus → FB.login if needed */
   const connectFacebookSdk = async () => {
@@ -326,10 +358,21 @@ export function ConnectNetworksPanel({
                     <Copy className="h-3.5 w-3.5" />
                   </Button>
                 )}
+                {configured && isFacebook && meta?.appId && (
+                  <FacebookLoginButton
+                    appId={meta.appId}
+                    configId={meta.loginConfigId}
+                    sdkVersion={meta.sdkVersion || "v21.0"}
+                    onLogin={() => {
+                      void checkLoginState();
+                    }}
+                  />
+                )}
                 {configured && (
                   <Button
                     size="sm"
-                    className="brand-gradient-btn gap-1.5"
+                    className={isFacebook ? "gap-1.5" : "brand-gradient-btn gap-1.5"}
+                    variant={isFacebook ? "outline" : "default"}
                     disabled={busy === platform}
                     onClick={() => connectOAuth(platform)}
                   >
@@ -340,8 +383,8 @@ export function ConnectNetworksPanel({
                     )}
                     {isFacebook
                       ? connected
-                        ? "Reconectar FB"
-                        : "Login Facebook"
+                        ? "Reconectar SDK"
+                        : "Login SDK"
                       : connected
                         ? "Reconectar"
                         : "Login OAuth"}
@@ -363,10 +406,11 @@ export function ConnectNetworksPanel({
           );
         })}
         <p className="pt-1 text-[11px] text-muted-foreground">
-          Facebook: en Meta agrega el dominio{" "}
-          <code className="text-[10px]">socialhub-fm.vercel.app</code> y activa
-          permiso <code className="text-[10px]">public_profile</code>. Opcional:{" "}
-          <code className="text-[10px]">META_LOGIN_CONFIG_ID</code>.
+          Facebook: botón oficial <code className="text-[10px]">fb:login-button</code>{" "}
+          con <code className="text-[10px]">config_id</code>. En Vercel define{" "}
+          <code className="text-[10px]">META_LOGIN_CONFIG_ID</code> (ID de la
+          configuración en Meta → Facebook Login). Dominio:{" "}
+          <code className="text-[10px]">socialhub-fm.vercel.app</code>.
         </p>
       </CardContent>
     </Card>

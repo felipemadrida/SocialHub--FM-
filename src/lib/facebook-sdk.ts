@@ -1,12 +1,12 @@
 /**
  * Facebook JavaScript SDK loader + login helpers (client-only).
- * Docs: FB.getLoginStatus / FB.login
+ * Docs: FB.getLoginStatus / FB.login / fb:login-button
  */
 
 export type FbAuthResponse = {
   accessToken: string;
   userID: string;
-  expiresIn?: number;
+  expiresIn?: number | string;
   signedRequest?: string;
 };
 
@@ -18,6 +18,7 @@ export type FbLoginStatusResponse = {
 declare global {
   interface Window {
     fbAsyncInit?: () => void;
+    checkLoginState?: () => void;
     FB?: {
       init: (opts: {
         appId: string;
@@ -34,6 +35,7 @@ declare global {
         opts?: { scope?: string; config_id?: string; return_scopes?: boolean }
       ) => void;
       logout: (cb?: () => void) => void;
+      XFBML?: { parse: (el?: Element | null) => void };
       api: (
         path: string,
         methodOrCb: string | ((r: unknown) => void),
@@ -45,21 +47,23 @@ declare global {
 }
 
 let sdkReady: Promise<void> | null = null;
+let lastAppId: string | null = null;
 
 export function loadFacebookSdk(appId: string, version = "v21.0"): Promise<void> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("Facebook SDK solo funciona en el navegador"));
   }
-  if (window.FB) return Promise.resolve();
-  if (sdkReady) return sdkReady;
+  if (window.FB && lastAppId === appId) return Promise.resolve();
+  if (sdkReady && lastAppId === appId) return sdkReady;
 
+  lastAppId = appId;
   sdkReady = new Promise((resolve, reject) => {
     window.fbAsyncInit = () => {
       try {
         window.FB!.init({
           appId,
           cookie: true,
-          xfbml: false,
+          xfbml: true,
           version,
         });
         resolve();
@@ -68,22 +72,31 @@ export function loadFacebookSdk(appId: string, version = "v21.0"): Promise<void>
       }
     };
 
-    if (document.getElementById("facebook-jssdk")) {
-      // script already injecting
-      return;
+    if (!document.getElementById("facebook-jssdk")) {
+      const script = document.createElement("script");
+      script.id = "facebook-jssdk";
+      script.async = true;
+      script.defer = true;
+      script.crossOrigin = "anonymous";
+      script.src = "https://connect.facebook.net/es_LA/sdk.js";
+      script.onerror = () => reject(new Error("No se pudo cargar Facebook SDK"));
+      document.body.appendChild(script);
+    } else if (window.FB) {
+      window.FB.init({
+        appId,
+        cookie: true,
+        xfbml: true,
+        version,
+      });
+      resolve();
     }
-
-    const script = document.createElement("script");
-    script.id = "facebook-jssdk";
-    script.async = true;
-    script.defer = true;
-    script.crossOrigin = "anonymous";
-    script.src = "https://connect.facebook.net/es_LA/sdk.js";
-    script.onerror = () => reject(new Error("No se pudo cargar Facebook SDK"));
-    document.body.appendChild(script);
   });
 
   return sdkReady;
+}
+
+export function fbParseXfbml(container?: Element | null) {
+  window.FB?.XFBML?.parse(container ?? undefined);
 }
 
 export function fbGetLoginStatus(force = false): Promise<FbLoginStatusResponse> {
