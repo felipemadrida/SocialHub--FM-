@@ -15,6 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PLATFORMS, PLATFORM_CONFIG, type PlatformId } from "@/lib/platforms";
 import type { SocialAccount } from "@/types/social";
+import {
+  fbGetLoginStatus,
+  fbLogin,
+  loadFacebookSdk,
+} from "@/lib/facebook-sdk";
 
 type ProviderInfo = {
   platform: PlatformId;
@@ -27,6 +32,13 @@ type ProviderInfo = {
   envSecret: string;
   callbackUrl?: string;
   startPath?: string;
+};
+
+type MetaSdkInfo = {
+  appId: string | null;
+  loginConfigId: string | null;
+  sdkVersion: string;
+  jsSdkEnabled: boolean;
 };
 
 type Props = {
@@ -47,8 +59,10 @@ export function ConnectNetworksPanel({
   toast,
 }: Props) {
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
+  const [meta, setMeta] = useState<MetaSdkInfo | null>(null);
   const [summary, setSummary] = useState({ total: 0, configured: 0, ready: false });
   const [busy, setBusy] = useState<string | null>(null);
+  const [fbReady, setFbReady] = useState(false);
 
   const loadProviders = useCallback(async () => {
     const res = await fetch("/api/oauth");
@@ -56,6 +70,7 @@ export function ConnectNetworksPanel({
       const data = await res.json();
       setProviders(data.providers || []);
       if (data.summary) setSummary(data.summary);
+      if (data.meta) setMeta(data.meta);
     }
   }, []);
 
@@ -63,12 +78,111 @@ export function ConnectNetworksPanel({
     loadProviders();
   }, [loadProviders]);
 
+  useEffect(() => {
+    if (!meta?.appId || !meta.jsSdkEnabled) return;
+    let cancelled = false;
+    loadFacebookSdk(meta.appId, meta.sdkVersion || "v21.0")
+      .then(() => {
+        if (!cancelled) setFbReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setFbReady(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [meta?.appId, meta?.jsSdkEnabled, meta?.sdkVersion]);
+
   const accountFor = (platform: string) =>
     accounts.find((a) => a.platform === platform && a.isActive);
 
   const connectedCount = accounts.filter((a) => a.isActive && a.isConnected).length;
 
+  const persistFacebookToken = async (accessToken: string, userID?: string, expiresIn?: number) => {
+    const res = await fetch("/api/oauth/facebook/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accessToken,
+        userID,
+        expiresIn,
+        platform: "facebook",
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.detail || "No se pudo guardar el token");
+    return data;
+  };
+
+  /** Facebook JS SDK: getLoginStatus → FB.login if needed */
+  const connectFacebookSdk = async () => {
+    if (!meta?.appId) {
+      toast({
+        title: "Meta App ID faltante",
+        description: "Define META_APP_ID en Vercel",
+        variant: "destructive",
+      });
+      return;
+    }
+    setBusy("facebook");
+    try {
+      await loadFacebookSdk(meta.appId, meta.sdkVersion || "v21.0");
+
+      const statusChangeCallback = async (response: {
+        status: string;
+        authResponse?: { accessToken: string; userID: string; expiresIn?: number } | null;
+      }) => {
+        if (response.status === "connected" && response.authResponse?.accessToken) {
+          await persistFacebookToken(
+            response.authResponse.accessToken,
+            response.authResponse.userID,
+            response.authResponse.expiresIn
+          );
+          toast({
+            title: "Facebook conectado",
+            description: "Sesión vía Facebook JS SDK",
+          });
+          onRefresh();
+          return true;
+        }
+        return false;
+      };
+
+      // Same pattern Meta documents:
+      // FB.getLoginStatus(function(response) { statusChangeCallback(response); });
+      const status = await fbGetLoginStatus(true);
+      if (await statusChangeCallback(status)) return;
+
+      const login = await fbLogin({
+        configId: meta.loginConfigId || undefined,
+        scope: meta.loginConfigId ? undefined : "public_profile",
+      });
+      if (!(await statusChangeCallback(login))) {
+        toast({
+          title: "Login cancelado o incompleto",
+          description:
+            login.status === "not_authorized"
+              ? "Autoriza la app en Facebook"
+              : "Activa public_profile / config_id en Meta",
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      toast({
+        title: "Error Facebook SDK",
+        description: e instanceof Error ? e.message : "Error",
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const connectOAuth = (platform: string) => {
+    if (platform === "facebook" && meta?.jsSdkEnabled) {
+      void connectFacebookSdk();
+      return;
+    }
     const provider = providers.find((p) => p.platform === platform);
     if (!provider?.configured) {
       toast({
@@ -120,7 +234,8 @@ export function ConnectNetworksPanel({
               Conectar redes (OAuth)
             </CardTitle>
             <CardDescription>
-              Login real por red. Publica a una o varias al mismo tiempo.
+              Facebook usa JS SDK (getLoginStatus / login). Otras redes: OAuth
+              redirect.
             </CardDescription>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -130,6 +245,11 @@ export function ConnectNetworksPanel({
             <Badge variant={connectedCount > 0 ? "default" : "secondary"}>
               Conectadas: {connectedCount}
             </Badge>
+            {meta?.jsSdkEnabled && (
+              <Badge variant={fbReady ? "default" : "secondary"}>
+                FB SDK {fbReady ? "listo" : "…"}
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -142,6 +262,7 @@ export function ConnectNetworksPanel({
           const connected = Boolean(acc?.isConnected);
           const configured = Boolean(provider?.configured);
           const callback = provider?.callbackUrl;
+          const isFacebook = platform === "facebook";
 
           return (
             <div
@@ -160,14 +281,16 @@ export function ConnectNetworksPanel({
                     </p>
                   ) : configured ? (
                     <p className="text-xs text-muted-foreground">
-                      OAuth listo — inicia sesión con tu cuenta
+                      {isFacebook
+                        ? "Facebook JS SDK — Login en popup"
+                        : "OAuth listo — inicia sesión con tu cuenta"}
                     </p>
                   ) : (
                     <p className="text-xs text-amber-600 dark:text-amber-400">
                       Falta {provider?.envId} / {provider?.envSecret}
                     </p>
                   )}
-                  {callback && (
+                  {callback && !isFacebook && (
                     <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
                       {callback}
                     </p>
@@ -184,7 +307,7 @@ export function ConnectNetworksPanel({
                     <AlertCircle className="h-3 w-3" /> Sin conectar
                   </Badge>
                 )}
-                {callback && (
+                {callback && !isFacebook && (
                   <Button
                     size="sm"
                     variant="ghost"
@@ -207,7 +330,13 @@ export function ConnectNetworksPanel({
                     ) : (
                       <Link2 className="h-3.5 w-3.5" />
                     )}
-                    {connected ? "Reconectar" : "Login OAuth"}
+                    {isFacebook
+                      ? connected
+                        ? "Reconectar FB"
+                        : "Login Facebook"
+                      : connected
+                        ? "Reconectar"
+                        : "Login OAuth"}
                   </Button>
                 )}
                 {acc && (
@@ -226,8 +355,10 @@ export function ConnectNetworksPanel({
           );
         })}
         <p className="pt-1 text-[11px] text-muted-foreground">
-          Copia cada callback en la app del proveedor. Variables: META_*, X_*,
-          LINKEDIN_*, TIKTOK_*, GOOGLE_*, PINTEREST_* en `.env` / Vercel.
+          Facebook: en Meta agrega el dominio{" "}
+          <code className="text-[10px]">socialhub-fm.vercel.app</code> y activa
+          permiso <code className="text-[10px]">public_profile</code>. Opcional:{" "}
+          <code className="text-[10px]">META_LOGIN_CONFIG_ID</code>.
         </p>
       </CardContent>
     </Card>

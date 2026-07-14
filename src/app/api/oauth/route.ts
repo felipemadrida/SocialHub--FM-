@@ -24,6 +24,12 @@ export async function GET() {
 
   return NextResponse.json({
     providers,
+    meta: {
+      appId: process.env.META_APP_ID || null,
+      loginConfigId: process.env.META_LOGIN_CONFIG_ID || null,
+      sdkVersion: "v21.0",
+      jsSdkEnabled: Boolean(process.env.META_APP_ID?.trim()),
+    },
     summary: {
       total: providers.length,
       configured: configuredCount,
