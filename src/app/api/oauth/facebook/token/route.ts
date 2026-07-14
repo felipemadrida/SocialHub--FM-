@@ -8,7 +8,8 @@ import { fetchProfile } from "@/lib/oauth/state";
 const bodySchema = z.object({
   accessToken: z.string().min(10),
   userID: z.string().optional(),
-  expiresIn: z.number().optional(),
+  expiresIn: z.union([z.number(), z.string()]).optional(),
+  signedRequest: z.string().optional(),
   platform: z.enum(["facebook", "instagram"]).default("facebook"),
 });
 
@@ -26,6 +27,12 @@ export async function POST(request: Request) {
   }
 
   const { accessToken, expiresIn, platform } = parsed.data;
+  const expiresInNum =
+    typeof expiresIn === "string" ? Number(expiresIn) : expiresIn;
+  const expiresInSafe =
+    typeof expiresInNum === "number" && Number.isFinite(expiresInNum)
+      ? expiresInNum
+      : undefined;
 
   // Validate token with Graph API
   const debug = await fetch(
@@ -83,8 +90,8 @@ export async function POST(request: Request) {
     accessToken,
     refreshToken: null as string | null,
     externalId: String(meta.pageId || profile.externalId || ""),
-    tokenExpiresAt: expiresIn
-      ? new Date(Date.now() + expiresIn * 1000)
+    tokenExpiresAt: expiresInSafe
+      ? new Date(Date.now() + expiresInSafe * 1000)
       : debug?.data?.expires_at
         ? new Date(Number(debug.data.expires_at) * 1000)
         : null,

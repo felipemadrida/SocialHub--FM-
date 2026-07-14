@@ -98,14 +98,20 @@ export function ConnectNetworksPanel({
 
   const connectedCount = accounts.filter((a) => a.isActive && a.isConnected).length;
 
-  const persistFacebookToken = async (accessToken: string, userID?: string, expiresIn?: number) => {
+  const persistFacebookToken = async (authResponse: {
+    accessToken: string;
+    userID?: string;
+    expiresIn?: number | string;
+    signedRequest?: string;
+  }) => {
     const res = await fetch("/api/oauth/facebook/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        accessToken,
-        userID,
-        expiresIn,
+        accessToken: authResponse.accessToken,
+        userID: authResponse.userID,
+        expiresIn: authResponse.expiresIn,
+        signedRequest: authResponse.signedRequest,
         platform: "facebook",
       }),
     });
@@ -130,17 +136,20 @@ export function ConnectNetworksPanel({
 
       const statusChangeCallback = async (response: {
         status: string;
-        authResponse?: { accessToken: string; userID: string; expiresIn?: number } | null;
+        authResponse?: {
+          accessToken: string;
+          userID: string;
+          expiresIn?: number | string;
+          signedRequest?: string;
+        } | null;
       }) => {
+        // Meta shape:
+        // { status: 'connected', authResponse: { accessToken, expiresIn, signedRequest, userID } }
         if (response.status === "connected" && response.authResponse?.accessToken) {
-          await persistFacebookToken(
-            response.authResponse.accessToken,
-            response.authResponse.userID,
-            response.authResponse.expiresIn
-          );
+          await persistFacebookToken(response.authResponse);
           toast({
             title: "Facebook conectado",
-            description: "Sesión vía Facebook JS SDK",
+            description: `userID ${response.authResponse.userID || ""}`.trim(),
           });
           onRefresh();
           return true;
@@ -148,7 +157,6 @@ export function ConnectNetworksPanel({
         return false;
       };
 
-      // Same pattern Meta documents:
       // FB.getLoginStatus(function(response) { statusChangeCallback(response); });
       const status = await fbGetLoginStatus(true);
       if (await statusChangeCallback(status)) return;
