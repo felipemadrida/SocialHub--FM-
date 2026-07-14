@@ -8,6 +8,8 @@ Dashboard en español para gestionar **cuentas OAuth**, contenido, Studio Creati
 **Repo:** https://github.com/felipemadrida/SocialHub--FM-  
 **DB:** PostgreSQL en Neon (`SocialHub-FM`) · **Versión:** 0.6.3
 
+Guía corta del paquete: ver [`PACKAGE.md`](./PACKAGE.md).
+
 ---
 
 ## Qué incluye (v0.6+)
