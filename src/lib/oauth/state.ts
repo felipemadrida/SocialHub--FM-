@@ -49,7 +49,21 @@ export function buildAuthorizeUrl(
   url.searchParams.set("redirect_uri", redirectUri);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("state", state);
-  url.searchParams.set("scope", provider.scopes.join(" "));
+
+  // Facebook Login for Business: use config_id (permissions come from Meta config).
+  // Classic Login: pass scope list.
+  if (provider.platform === "facebook" || provider.platform === "instagram") {
+    const configId = process.env.META_LOGIN_CONFIG_ID?.trim();
+    if (configId) {
+      url.searchParams.set("config_id", configId);
+    } else {
+      const scopes =
+        provider.scopes.length > 0 ? provider.scopes : ["public_profile"];
+      url.searchParams.set("scope", scopes.join(","));
+    }
+  } else {
+    url.searchParams.set("scope", provider.scopes.join(" "));
+  }
 
   if (provider.platform === "x" || provider.platform === "youtube") {
     url.searchParams.set("code_challenge", codeChallenge || "challenge");
@@ -58,9 +72,6 @@ export function buildAuthorizeUrl(
   if (provider.platform === "youtube") {
     url.searchParams.set("access_type", "offline");
     url.searchParams.set("prompt", "consent");
-  }
-  if (provider.platform === "facebook" || provider.platform === "instagram") {
-    // Meta uses same dialog
   }
 
   return url.toString();

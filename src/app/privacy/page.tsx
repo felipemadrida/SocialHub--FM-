@@ -136,6 +136,10 @@ export default function PrivacyPage() {
           <Link href="/login" className="text-teal-400 underline">
             Volver al login
           </Link>
+          {" · "}
+          <Link href="/terms" className="text-teal-400 underline">
+            Condiciones
+          </Link>
         </p>
       </div>
     </main>
