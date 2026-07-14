@@ -1,16 +1,35 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="SocialHub hero">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0a0a0a"/>
-      <stop offset="100%" stop-color="#1f1f1f"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="55%" stop-color="#132033"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
     </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="78%" cy="28%" r="40%">
+      <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#14b8a6" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect width="1600" height="900" fill="url(#g)"/>
-  <circle cx="1400" cy="120" r="220" fill="#fafafa" opacity="0.08"/>
-  <text x="80" y="120" fill="#a3a3a3" font-family="Arial" font-size="28" letter-spacing="3">SOCIALHUB -FM-</text>
-  <text x="80" y="280" fill="#fafafa" font-family="Arial" font-size="72" font-weight="700">Marketing Hub + IA Studio</text>
-  <text x="80" y="360" fill="#d4d4d4" font-family="Arial" font-size="32">Campañas, contenido y automatización en un solo lugar</text>
-  <rect x="80" y="720" width="260" height="64" rx="12" fill="#fafafa"/>
-  <text x="120" y="762" fill="#111" font-family="Arial" font-size="24" font-weight="700">Marketing Hub</text>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+  <g stroke="url(#brand)" stroke-width="2" opacity="0.55" fill="none">
+    <path d="M980 180 C1100 220,1180 320,1220 420"/>
+    <path d="M1040 160 C1180 200,1300 300,1360 430"/>
+    <path d="M1120 520 C1200 560,1280 640,1340 740"/>
+  </g>
+  <g fill="url(#brand)">
+    <circle cx="980" cy="180" r="10"/><circle cx="1100" cy="250" r="7"/>
+    <circle cx="1220" cy="420" r="12"/><circle cx="1360" cy="430" r="8"/>
+    <circle cx="1280" cy="640" r="9"/><circle cx="1340" cy="740" r="6"/>
+  </g>
+  <text x="96" y="150" fill="#99f6e4" font-family="Segoe UI, Arial, sans-serif" font-size="28" letter-spacing="4">SOCIALHUB -FM-</text>
+  <text x="96" y="280" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="72" font-weight="700">Marketing Hub + IA Studio</text>
+  <text x="96" y="360" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="30">Campañas, contenido y automatización en un solo lugar</text>
+  <rect x="96" y="720" width="280" height="64" rx="14" fill="url(#brand)"/>
+  <text x="145" y="762" fill="#0f172a" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Marketing Hub</text>
 </svg>

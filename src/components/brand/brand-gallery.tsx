@@ -10,7 +10,9 @@ export function BrandGallery() {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base">Galería de marca</CardTitle>
-        <CardDescription>8 assets · marca + promocionales</CardDescription>
+        <CardDescription>
+          {BRAND_ASSETS.length} assets · marca + promocionales (PNG / SVG)
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

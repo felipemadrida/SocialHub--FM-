@@ -1,8 +1,9 @@
-# SocialHub -FM- â€” Paquete completo (v0.6.6)
+# SocialHub -FM- â€” Paquete completo (v0.6.7)
 
 Copia distribuible alineada con producciÃ³n (`socialhub-fm.vercel.app`).
 
 ## Incluye
+| **Diseño / gráficos** | OK — ver ASSETS.md (public/brand, marketing, design) |
 
 | MÃ³dulo | Estado |
 |--------|--------|

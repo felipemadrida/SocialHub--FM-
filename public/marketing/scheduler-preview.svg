@@ -1,16 +1,29 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Scheduler preview">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0a0a0a"/>
-      <stop offset="100%" stop-color="#1f1f1f"/>
+      <stop offset="0%" stop-color="#14b8a6"/><stop offset="100%" stop-color="#8b5cf6"/>
     </linearGradient>
   </defs>
-  <rect width="1600" height="900" fill="url(#g)"/>
-  <circle cx="1400" cy="120" r="220" fill="#fafafa" opacity="0.08"/>
-  <text x="80" y="120" fill="#a3a3a3" font-family="Arial" font-size="28" letter-spacing="3">SOCIALHUB -FM-</text>
-  <text x="80" y="280" fill="#fafafa" font-family="Arial" font-size="72" font-weight="700">Agenda inteligente</text>
-  <text x="80" y="360" fill="#d4d4d4" font-family="Arial" font-size="32">Programa posts con vista calendario</text>
-  <rect x="80" y="720" width="260" height="64" rx="12" fill="#fafafa"/>
-  <text x="120" y="762" fill="#111" font-family="Arial" font-size="24" font-weight="700">Marketing Hub</text>
+  <rect width="1200" height="800" rx="28" fill="#0f172a"/>
+  <rect x="40" y="40" width="1120" height="720" rx="22" fill="#111827"/>
+  <text x="72" y="100" fill="#99f6e4" font-family="Segoe UI, Arial" font-size="22" letter-spacing="2">AGENDA</text>
+  <text x="72" y="150" fill="#f8fafc" font-family="Segoe UI, Arial" font-size="40" font-weight="700">Scheduler Preview</text>
+  <g>
+    <rect x="72" y="220" width="320" height="140" rx="16" fill="#1e293b" stroke="url(#g)" stroke-width="2"/>
+    <text x="96" y="270" fill="#f8fafc" font-family="Segoe UI, Arial" font-size="22" font-weight="600">Lun · 10:00</text>
+    <text x="96" y="310" fill="#94a3b8" font-family="Segoe UI, Arial" font-size="18">Post Facebook + IG</text>
+    <rect x="420" y="220" width="320" height="140" rx="16" fill="#1e293b"/>
+    <text x="444" y="270" fill="#f8fafc" font-family="Segoe UI, Arial" font-size="22" font-weight="600">Mar · 14:30</text>
+    <text x="444" y="310" fill="#94a3b8" font-family="Segoe UI, Arial" font-size="18">Carrusel promo</text>
+    <rect x="768" y="220" width="320" height="140" rx="16" fill="#1e293b"/>
+    <text x="792" y="270" fill="#f8fafc" font-family="Segoe UI, Arial" font-size="22" font-weight="600">Vie · 09:00</text>
+    <text x="792" y="310" fill="#94a3b8" font-family="Segoe UI, Arial" font-size="18">Reel + CTA</text>
+  </g>
+  <rect x="72" y="420" width="1016" height="260" rx="18" fill="#0b1220"/>
+  <rect x="100" y="460" width="180" height="18" rx="9" fill="url(#g)"/>
+  <rect x="100" y="500" width="920" height="12" rx="6" fill="#334155"/>
+  <rect x="100" y="530" width="760" height="12" rx="6" fill="#334155"/>
+  <rect x="100" y="560" width="840" height="12" rx="6" fill="#334155"/>
+  <text x="100" y="640" fill="#64748b" font-family="Segoe UI, Arial" font-size="18">SocialHub -FM- · programación multi-red</text>
 </svg>
