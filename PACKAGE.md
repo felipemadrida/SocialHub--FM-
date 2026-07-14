@@ -1,57 +1,52 @@
-# SocialHub -FM- — Paquete completo (v0.6.3)
+# SocialHub -FM- — Paquete completo (v0.6.4)
 
-Copia distribuible y autónoma del proyecto. Misma funcionalidad que producción.
+Copia distribuible alineada con producción (`socialhub-fm.vercel.app`).
 
-## Contenido
+## Incluye
 
-- App Next.js 16 (App Router) + Prisma PostgreSQL
-- Auth Admin/Retail (NextAuth)
-- OAuth multi-red (Facebook, Instagram, TikTok, X, LinkedIn, YouTube, Pinterest)
-- Publicación paralela live a una o varias redes
-- Studio Creativo + Marketing Hub + IA Studio
-- Guía Despliegue interactiva
-- Sidecar `mini-services/social-automation`
+| Módulo | Estado |
+|--------|--------|
+| Auth Admin / Retail | OK |
+| OAuth multi-red (Meta scopes seguros + App Review ready) | OK |
+| Publicación paralela live | OK |
+| `/privacy` pública (Meta App Review) | OK |
+| Íconos Meta 1024 (`/meta-icon-1024.jpg`) | OK |
+| Studio Creativo | OK |
+| Marketing Hub + IA | OK |
+| Guía Despliegue | OK |
+| Sidecar automation | OK |
 
-## Setup (Windows / macOS / Linux)
+## Setup
 
 ```bash
 cd socialhub-project
 cp .env.example .env
-# Edita DATABASE_URL, NEXTAUTH_SECRET, APP_URL, NEXTAUTH_URL
+# DATABASE_URL, NEXTAUTH_SECRET, APP_URL, NEXTAUTH_URL
+# META_APP_ID / META_APP_SECRET para Facebook
 
 npm run setup
-# = npm install + prisma generate + prisma db push
-
 npm run dev
 # http://localhost:3001/login
 ```
 
-Postgres local opcional:
+### Meta / Facebook
 
-```bash
-docker compose up -d
-# DATABASE_URL=postgresql://socialhub:socialhub@localhost:5432/socialhub?schema=public
-```
-
-## OAuth producción
-
-1. Crea apps en Meta / X / LinkedIn / etc.
-2. Añade callbacks `{APP_URL}/api/oauth/{red}/callback`
-3. Define keys en `.env` o Vercel (ver `.env.example`)
-4. En la app: **Cuentas → Login OAuth**
+1. Dominios de la app: `socialhub-fm.vercel.app` (o localhost)
+2. Callbacks: `{APP_URL}/api/oauth/facebook/callback`
+3. Ícono: `public/meta-icon-1024.jpg`
+4. Privacidad: `{APP_URL}/privacy`
+5. Para publicar Pages: activa `pages_manage_posts` en Meta → Permisos, luego:
+   ```
+   META_FACEBOOK_SCOPES=public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,pages_manage_engagement
+   ```
 
 ## Scripts
 
 | Comando | Uso |
 |---------|-----|
-| `npm run setup` | install + generate + db push |
-| `npm run dev` | puerto 3001 |
-| `npm run build` / `start` | producción local |
+| `npm run setup` | install + prisma generate + db push |
+| `npm run dev` | puerto **3001** |
 | `npm run purge:demo` | limpia cuentas placeholder |
-| `npm run dev:automation` | agenda mock 3031 |
-
-## Deploy
-
-Ver `README.md` y pestaña **Despliegue** en la UI. Proyecto Vercel: `socialhub-fm`.
+| `npm run dev:automation` | sidecar **3031** |
 
 Live: https://socialhub-fm.vercel.app

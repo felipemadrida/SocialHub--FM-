@@ -6,7 +6,7 @@ Dashboard en español para gestionar **cuentas OAuth**, contenido, Studio Creati
 
 **Web:** https://socialhub-fm.vercel.app · **Login:** /login  
 **Repo:** https://github.com/felipemadrida/SocialHub--FM-  
-**DB:** PostgreSQL en Neon (`SocialHub-FM`) · **Versión:** 0.6.3
+**DB:** PostgreSQL en Neon (`SocialHub-FM`) · **Versión:** 0.6.4
 
 Guía corta del paquete: ver [`PACKAGE.md`](./PACKAGE.md).
 
