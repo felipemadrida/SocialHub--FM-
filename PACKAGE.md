@@ -1,4 +1,4 @@
-# SocialHub -FM- — Paquete completo (v0.6.4)
+# SocialHub -FM- — Paquete completo (v0.6.5)
 
 Copia distribuible alineada con producción (`socialhub-fm.vercel.app`).
 

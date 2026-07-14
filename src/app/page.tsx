@@ -78,6 +78,7 @@ import { DeployGuide } from "@/components/deploy/deploy-guide";
 import { AdminUsersPanel } from "@/components/admin/admin-users-panel";
 import { CreativeStudio, StudioAssetPicker } from "@/components/studio/creative-studio";
 import { ConnectNetworksPanel } from "@/components/accounts/connect-networks-panel";
+import { AccountsHub } from "@/components/accounts/accounts-hub";
 
 // ─────────────────────────────────────────────────
 // MAIN COMPONENT
@@ -838,100 +839,13 @@ export default function SocialDashboard() {
 
             {/* ── ACCOUNTS TAB ──────────────────────── */}
             <TabsContent value="accounts" className="space-y-6">
-              <ConnectNetworksPanel
+              <AccountsHub
                 accounts={accounts}
                 enabledPlatforms={enabledPlatforms}
                 onRefresh={fetchAllData}
+                onDelete={deleteAccount}
                 toast={toast}
               />
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold">Cuentas Conectadas</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Gestiona perfiles y publica a una o varias redes a la vez
-                  </p>
-                </div>
-                <Dialog open={newAccountOpen} onOpenChange={setNewAccountOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" className="gap-2">
-                      <Plus className="h-4 w-4" />
-                      Cuenta manual
-                    </Button>
-                  </DialogTrigger>
-                </Dialog>
-              </div>
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {accounts.map((account) => {
-                  const config = PLATFORM_CONFIG[account.platform];
-                  if (!config) return null;
-                  const Icon = config.icon;
-                  return (
-                    <motion.div
-                      key={account.id}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                    >
-                      <Card className="hover:shadow-md transition-all">
-                        <CardContent className="p-5">
-                          <div className="flex items-center gap-3 mb-4">
-                            <div className={`p-3 rounded-xl ${config.bg}`}>
-                              <Icon className={`h-6 w-6 ${config.color}`} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm truncate">{account.accountName}</p>
-                              <Badge variant="outline" className="text-xs mt-0.5">{config.label}</Badge>
-                            </div>
-                            <div className={`h-2.5 w-2.5 rounded-full ${account.isActive ? "bg-emerald-500" : "bg-gray-300"}`} />
-                          </div>
-                          <Separator className="mb-4" />
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <p className="text-xl font-bold">{formatNumber(account.followers)}</p>
-                              <p className="text-xs text-muted-foreground">Seguidores</p>
-                            </div>
-                            <div>
-                              <p className="text-xl font-bold">{account.engagement}%</p>
-                              <p className="text-xs text-muted-foreground">Engagement</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold">{formatNumber(account.following)}</p>
-                              <p className="text-xs text-muted-foreground">Siguiendo</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold">{account.posts}</p>
-                              <p className="text-xs text-muted-foreground">Posts</p>
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full mt-4 text-destructive hover:text-destructive"
-                            onClick={() => deleteAccount(account.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                            Desconectar
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
-
-              {accounts.length === 0 && (
-                <Card>
-                  <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                    <Users className="h-16 w-16 mb-4 opacity-20" />
-                    <p className="text-lg font-medium">Sin cuentas conectadas</p>
-                    <p className="text-sm mt-1">Conecta tu primera red social para empezar</p>
-                    <Button size="sm" className="mt-4 gap-2" onClick={() => setNewAccountOpen(true)}>
-                      <Plus className="h-4 w-4" /> Conectar Cuenta
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
             </TabsContent>
 
             {/* ── CONTENT TAB ──────────────────────── */}
