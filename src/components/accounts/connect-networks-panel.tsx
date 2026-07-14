@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   CheckCircle2,
+  Copy,
   Link2,
   Loader2,
   LogIn,
@@ -24,6 +25,8 @@ type ProviderInfo = {
   supportsVideo: boolean;
   envId: string;
   envSecret: string;
+  callbackUrl?: string;
+  startPath?: string;
 };
 
 type Props = {
@@ -44,6 +47,7 @@ export function ConnectNetworksPanel({
   toast,
 }: Props) {
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
+  const [summary, setSummary] = useState({ total: 0, configured: 0, ready: false });
   const [busy, setBusy] = useState<string | null>(null);
 
   const loadProviders = useCallback(async () => {
@@ -51,6 +55,7 @@ export function ConnectNetworksPanel({
     if (res.ok) {
       const data = await res.json();
       setProviders(data.providers || []);
+      if (data.summary) setSummary(data.summary);
     }
   }, []);
 
@@ -61,17 +66,28 @@ export function ConnectNetworksPanel({
   const accountFor = (platform: string) =>
     accounts.find((a) => a.platform === platform && a.isActive);
 
+  const connectedCount = accounts.filter((a) => a.isActive && a.isConnected).length;
+
   const connectOAuth = (platform: string) => {
     const provider = providers.find((p) => p.platform === platform);
     if (!provider?.configured) {
       toast({
         title: "OAuth no configurado",
-        description: `Define ${provider?.envId || "CLIENT_ID"} y ${provider?.envSecret || "CLIENT_SECRET"} en el entorno.`,
+        description: `Define ${provider?.envId || "CLIENT_ID"} y ${provider?.envSecret || "CLIENT_SECRET"} en Vercel / .env.`,
         variant: "destructive",
       });
       return;
     }
     window.location.href = `/api/oauth/${platform}/start`;
+  };
+
+  const copyCallback = async (url: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Callback copiado", description: label });
+    } catch {
+      toast({ title: "No se pudo copiar", variant: "destructive" });
+    }
   };
 
   const disconnect = async (accountId: string, platform: string) => {
@@ -97,14 +113,25 @@ export function ConnectNetworksPanel({
   return (
     <Card className="border-teal-500/20">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <LogIn className="h-4 w-4 text-teal-500" />
-          Conectar redes (OAuth)
-        </CardTitle>
-        <CardDescription>
-          Inicia sesión real en cada red. Luego publica a una o varias al mismo
-          tiempo.
-        </CardDescription>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <LogIn className="h-4 w-4 text-teal-500" />
+              Conectar redes (OAuth)
+            </CardTitle>
+            <CardDescription>
+              Login real por red. Publica a una o varias al mismo tiempo.
+            </CardDescription>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant="outline">
+              APIs: {summary.configured}/{summary.total || providers.length || 7}
+            </Badge>
+            <Badge variant={connectedCount > 0 ? "default" : "secondary"}>
+              Conectadas: {connectedCount}
+            </Badge>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {list.map((platform) => {
@@ -114,6 +141,7 @@ export function ConnectNetworksPanel({
           const provider = providers.find((p) => p.platform === platform);
           const connected = Boolean(acc?.isConnected);
           const configured = Boolean(provider?.configured);
+          const callback = provider?.callbackUrl;
 
           return (
             <div
@@ -136,7 +164,12 @@ export function ConnectNetworksPanel({
                     </p>
                   ) : (
                     <p className="text-xs text-amber-600 dark:text-amber-400">
-                      Falta configurar {provider?.envId} / {provider?.envSecret}
+                      Falta {provider?.envId} / {provider?.envSecret}
+                    </p>
+                  )}
+                  {callback && (
+                    <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
+                      {callback}
                     </p>
                   )}
                 </div>
@@ -150,6 +183,17 @@ export function ConnectNetworksPanel({
                   <Badge variant="secondary" className="gap-1">
                     <AlertCircle className="h-3 w-3" /> Sin conectar
                   </Badge>
+                )}
+                {callback && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="gap-1.5"
+                    title="Copiar URL de callback"
+                    onClick={() => copyCallback(callback, conf.label)}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
                 )}
                 {configured && (
                   <Button
@@ -181,10 +225,9 @@ export function ConnectNetworksPanel({
             </div>
           );
         })}
-        <p className="text-[11px] text-muted-foreground pt-1">
-          Producción: configura META_*, X_*, LINKEDIN_*, TIKTOK_*, GOOGLE_* y
-          PINTEREST_* en el entorno, con callbacks{" "}
-          <code className="text-[10px]">/api/oauth/&#123;red&#125;/callback</code>.
+        <p className="pt-1 text-[11px] text-muted-foreground">
+          Copia cada callback en la app del proveedor. Variables: META_*, X_*,
+          LINKEDIN_*, TIKTOK_*, GOOGLE_*, PINTEREST_* en `.env` / Vercel.
         </p>
       </CardContent>
     </Card>

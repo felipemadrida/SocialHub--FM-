@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/api-auth";
-import { getOAuthProviders } from "@/lib/oauth/providers";
+import { getOAuthProviders, oauthCallbackUrl } from "@/lib/oauth/providers";
 
-/** List OAuth provider readiness + start URL hints */
+/** List OAuth provider readiness + callback URLs for production setup */
 export async function GET() {
   const { error } = await requireSession();
   if (error) return error;
@@ -16,7 +16,18 @@ export async function GET() {
     supportsVideo: p.supportsVideo,
     envId: p.envId,
     envSecret: p.envSecret,
+    callbackUrl: oauthCallbackUrl(p.platform),
+    startPath: `/api/oauth/${p.platform}/start`,
   }));
 
-  return NextResponse.json({ providers });
+  const configuredCount = providers.filter((p) => p.configured).length;
+
+  return NextResponse.json({
+    providers,
+    summary: {
+      total: providers.length,
+      configured: configuredCount,
+      ready: configuredCount > 0,
+    },
+  });
 }

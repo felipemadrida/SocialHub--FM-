@@ -42,7 +42,7 @@ const LIVE = {
   prismaProvider: "postgresql",
   framework: "Next.js 16 · App Router",
   node: "24.x (Vercel)",
-  auth: "NextAuth credentials · roles admin / retail",
+  auth: "NextAuth credentials · roles admin / retail · OAuth multi-red",
   envVars: [
     "DATABASE_URL",
     "NEXTAUTH_URL",
@@ -54,6 +54,18 @@ const LIVE = {
     "RETAIL_PASSWORD",
     "ALLOW_SEED",
     "SEED_SECRET",
+    "META_APP_ID",
+    "META_APP_SECRET",
+    "X_CLIENT_ID",
+    "X_CLIENT_SECRET",
+    "LINKEDIN_CLIENT_ID",
+    "LINKEDIN_CLIENT_SECRET",
+    "TIKTOK_CLIENT_KEY",
+    "TIKTOK_CLIENT_SECRET",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "PINTEREST_APP_ID",
+    "PINTEREST_APP_SECRET",
   ],
 } as const;
 
@@ -126,6 +138,7 @@ const CHECKLIST = [
   { label: "DATABASE_URL Neon (PostgreSQL) en Vercel", done: true },
   { label: "Variables: DATABASE_URL, NEXTAUTH_*, APP_URL, ADMIN_*, RETAIL_*", done: true },
   { label: "ALLOW_SEED=false en producción", done: true },
+  { label: "OAuth keys (META_*/X_*/…) + callbacks /api/oauth/*/callback", done: false },
   { label: "Usuarios admin/retail (cambiar claves de prueba en prod)", done: false },
   { label: "Dominio personalizado (opcional; ahora *.vercel.app)", done: false },
 ];
