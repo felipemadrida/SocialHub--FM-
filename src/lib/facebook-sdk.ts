@@ -1,6 +1,11 @@
 /**
- * Facebook JavaScript SDK loader + login helpers (client-only).
- * Docs: FB.getLoginStatus / FB.login / fb:login-button
+ * Facebook JavaScript SDK — Meta-documented login flow.
+ *
+ * function checkLoginState() {
+ *   FB.getLoginStatus(function(response) {
+ *     statusChangeCallback(response);
+ *   });
+ * }
  */
 
 export type FbAuthResponse = {
@@ -15,9 +20,14 @@ export type FbLoginStatusResponse = {
   authResponse?: FbAuthResponse | null;
 };
 
+export type StatusChangeCallback = (
+  response: FbLoginStatusResponse
+) => void | Promise<void>;
+
 declare global {
   interface Window {
     fbAsyncInit?: () => void;
+    /** Meta XFBML: onlogin="checkLoginState();" */
     checkLoginState?: () => void;
     FB?: {
       init: (opts: {
@@ -48,6 +58,37 @@ declare global {
 
 let sdkReady: Promise<void> | null = null;
 let lastAppId: string | null = null;
+let statusChangeCallbackRef: StatusChangeCallback | null = null;
+
+/** Register handler used by checkLoginState → getLoginStatus */
+export function setStatusChangeCallback(cb: StatusChangeCallback | null) {
+  statusChangeCallbackRef = cb;
+}
+
+/**
+ * Exact Meta sample:
+ * FB.getLoginStatus(function(response) { statusChangeCallback(response); });
+ */
+export function checkLoginState() {
+  if (!window.FB) {
+    console.warn("[FB] SDK not ready in checkLoginState");
+    return;
+  }
+  window.FB.getLoginStatus(function (response) {
+    void statusChangeCallbackRef?.(response);
+  });
+}
+
+/** Install global for <fb:login-button onlogin="checkLoginState();"> */
+export function installCheckLoginStateGlobal() {
+  window.checkLoginState = checkLoginState;
+}
+
+export function uninstallCheckLoginStateGlobal() {
+  if (window.checkLoginState === checkLoginState) {
+    delete window.checkLoginState;
+  }
+}
 
 export function loadFacebookSdk(appId: string, version = "v21.0"): Promise<void> {
   if (typeof window === "undefined") {
@@ -66,6 +107,7 @@ export function loadFacebookSdk(appId: string, version = "v21.0"): Promise<void>
           xfbml: true,
           version,
         });
+        installCheckLoginStateGlobal();
         resolve();
       } catch (e) {
         reject(e);
@@ -88,6 +130,7 @@ export function loadFacebookSdk(appId: string, version = "v21.0"): Promise<void>
         xfbml: true,
         version,
       });
+      installCheckLoginStateGlobal();
       resolve();
     }
   });

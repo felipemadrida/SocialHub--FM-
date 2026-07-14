@@ -16,9 +16,12 @@ import { Badge } from "@/components/ui/badge";
 import { PLATFORMS, PLATFORM_CONFIG, type PlatformId } from "@/lib/platforms";
 import type { SocialAccount } from "@/types/social";
 import {
+  checkLoginState,
   fbGetLoginStatus,
   fbLogin,
   loadFacebookSdk,
+  setStatusChangeCallback,
+  type FbLoginStatusResponse,
 } from "@/lib/facebook-sdk";
 import { FacebookLoginButton } from "@/components/accounts/facebook-login-button";
 
@@ -121,36 +124,46 @@ export function ConnectNetworksPanel({
     return data;
   };
 
-  /** Called by Meta: onlogin="checkLoginState();" after fb:login-button */
-  const checkLoginState = useCallback(async () => {
-    setBusy("facebook");
-    try {
-      const status = await fbGetLoginStatus(true);
-      if (status.status === "connected" && status.authResponse?.accessToken) {
-        await persistFacebookToken(status.authResponse);
+  /**
+   * Meta: statusChangeCallback(response)
+   * Called from checkLoginState → FB.getLoginStatus(...)
+   */
+  const statusChangeCallback = useCallback(
+    async (response: FbLoginStatusResponse) => {
+      setBusy("facebook");
+      try {
+        if (response.status === "connected" && response.authResponse?.accessToken) {
+          await persistFacebookToken(response.authResponse);
+          toast({
+            title: "Facebook conectado",
+            description: `userID ${response.authResponse.userID || ""}`.trim(),
+          });
+          onRefresh();
+          return;
+        }
         toast({
-          title: "Facebook conectado",
-          description: `userID ${status.authResponse.userID || ""}`.trim(),
+          title: "Sesión Facebook no conectada",
+          description: `status: ${response.status}`,
+          variant: "destructive",
         });
-        onRefresh();
-        return;
+      } catch (e) {
+        toast({
+          title: "Error Facebook",
+          description: e instanceof Error ? e.message : "Error",
+          variant: "destructive",
+        });
+      } finally {
+        setBusy(null);
       }
-      toast({
-        title: "Sesión Facebook no conectada",
-        description: `status: ${status.status}`,
-        variant: "destructive",
-      });
-    } catch (e) {
-      toast({
-        title: "Error al leer sesión FB",
-        description: e instanceof Error ? e.message : "Error",
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(null);
-    }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onRefresh, toast]);
+    [onRefresh, toast]
+  );
+
+  useEffect(() => {
+    setStatusChangeCallback(statusChangeCallback);
+    return () => setStatusChangeCallback(null);
+  }, [statusChangeCallback]);
 
   /** Facebook JS SDK: getLoginStatus → FB.login if needed */
   const connectFacebookSdk = async () => {
@@ -166,54 +179,27 @@ export function ConnectNetworksPanel({
     try {
       await loadFacebookSdk(meta.appId, meta.sdkVersion || "v21.0");
 
-      const statusChangeCallback = async (response: {
-        status: string;
-        authResponse?: {
-          accessToken: string;
-          userID: string;
-          expiresIn?: number | string;
-          signedRequest?: string;
-        } | null;
-      }) => {
-        // Meta shape:
-        // { status: 'connected', authResponse: { accessToken, expiresIn, signedRequest, userID } }
-        if (response.status === "connected" && response.authResponse?.accessToken) {
-          await persistFacebookToken(response.authResponse);
-          toast({
-            title: "Facebook conectado",
-            description: `userID ${response.authResponse.userID || ""}`.trim(),
-          });
-          onRefresh();
-          return true;
-        }
-        return false;
-      };
-
-      // FB.getLoginStatus(function(response) { statusChangeCallback(response); });
+      // Same as: function checkLoginState() { FB.getLoginStatus(...) }
+      checkLoginState();
+      // Give getLoginStatus a moment; if not connected, prompt login
+      await new Promise((r) => setTimeout(r, 400));
       const status = await fbGetLoginStatus(true);
-      if (await statusChangeCallback(status)) return;
+      if (status.status === "connected" && status.authResponse?.accessToken) {
+        await statusChangeCallback(status);
+        return;
+      }
 
       const login = await fbLogin({
         configId: meta.loginConfigId || undefined,
         scope: meta.loginConfigId ? undefined : "public_profile",
       });
-      if (!(await statusChangeCallback(login))) {
-        toast({
-          title: "Login cancelado o incompleto",
-          description:
-            login.status === "not_authorized"
-              ? "Autoriza la app en Facebook"
-              : "Activa public_profile / config_id en Meta",
-          variant: "destructive",
-        });
-      }
+      await statusChangeCallback(login);
     } catch (e) {
       toast({
         title: "Error Facebook SDK",
         description: e instanceof Error ? e.message : "Error",
         variant: "destructive",
       });
-    } finally {
       setBusy(null);
     }
   };
@@ -363,9 +349,6 @@ export function ConnectNetworksPanel({
                     appId={meta.appId}
                     configId={meta.loginConfigId}
                     sdkVersion={meta.sdkVersion || "v21.0"}
-                    onLogin={() => {
-                      void checkLoginState();
-                    }}
                   />
                 )}
                 {configured && (
