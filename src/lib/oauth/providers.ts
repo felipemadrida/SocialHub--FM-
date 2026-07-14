@@ -40,15 +40,9 @@ export function getOAuthProviders(): OAuthProviderConfig[] {
       configured: hasEnv("META_APP_ID", "META_APP_SECRET"),
       authUrl: "https://www.facebook.com/v21.0/dialog/oauth",
       tokenUrl: "https://graph.facebook.com/v21.0/oauth/access_token",
-      // pages_manage_posts must be added in Meta → Permissions and Features
-      // before requesting it, or Login shows "Invalid Scopes".
-      // After enabling there, set META_FACEBOOK_SCOPES with pages_manage_posts.
-      scopes: scopesFromEnv("META_FACEBOOK_SCOPES", [
-        "public_profile",
-        "email",
-        "pages_show_list",
-        "pages_read_engagement",
-      ]),
+      // Minimal scopes: many Meta apps reject email / pages_* until added under
+      // Permissions and Features. Extend via META_FACEBOOK_SCOPES after enabling.
+      scopes: scopesFromEnv("META_FACEBOOK_SCOPES", ["public_profile"]),
       supportsText: true,
       supportsImage: true,
       supportsVideo: true,
@@ -61,12 +55,7 @@ export function getOAuthProviders(): OAuthProviderConfig[] {
       configured: hasEnv("META_APP_ID", "META_APP_SECRET"),
       authUrl: "https://www.facebook.com/v21.0/dialog/oauth",
       tokenUrl: "https://graph.facebook.com/v21.0/oauth/access_token",
-      scopes: scopesFromEnv("META_INSTAGRAM_SCOPES", [
-        "public_profile",
-        "email",
-        "pages_show_list",
-        "pages_read_engagement",
-      ]),
+      scopes: scopesFromEnv("META_INSTAGRAM_SCOPES", ["public_profile"]),
       supportsText: true,
       supportsImage: true,
       supportsVideo: true,
