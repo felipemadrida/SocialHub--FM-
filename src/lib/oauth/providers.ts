@@ -20,6 +20,16 @@ function hasEnv(idKey: string, secretKey: string) {
   return Boolean(process.env[idKey]?.trim() && process.env[secretKey]?.trim());
 }
 
+/** Comma-separated scopes from env, or safe defaults that work before App Review. */
+function scopesFromEnv(envKey: string, fallback: string[]) {
+  const raw = process.env[envKey]?.trim();
+  if (!raw) return fallback;
+  return raw
+    .split(/[,\s]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 export function getOAuthProviders(): OAuthProviderConfig[] {
   return [
     {
@@ -28,9 +38,17 @@ export function getOAuthProviders(): OAuthProviderConfig[] {
       envId: "META_APP_ID",
       envSecret: "META_APP_SECRET",
       configured: hasEnv("META_APP_ID", "META_APP_SECRET"),
-      authUrl: "https://www.facebook.com/v19.0/dialog/oauth",
-      tokenUrl: "https://graph.facebook.com/v19.0/oauth/access_token",
-      scopes: ["pages_show_list", "pages_manage_posts", "pages_read_engagement", "public_profile"],
+      authUrl: "https://www.facebook.com/v21.0/dialog/oauth",
+      tokenUrl: "https://graph.facebook.com/v21.0/oauth/access_token",
+      // pages_manage_posts must be added in Meta → Permissions and Features
+      // before requesting it, or Login shows "Invalid Scopes".
+      // After enabling there, set META_FACEBOOK_SCOPES with pages_manage_posts.
+      scopes: scopesFromEnv("META_FACEBOOK_SCOPES", [
+        "public_profile",
+        "email",
+        "pages_show_list",
+        "pages_read_engagement",
+      ]),
       supportsText: true,
       supportsImage: true,
       supportsVideo: true,
@@ -41,14 +59,14 @@ export function getOAuthProviders(): OAuthProviderConfig[] {
       envId: "META_APP_ID",
       envSecret: "META_APP_SECRET",
       configured: hasEnv("META_APP_ID", "META_APP_SECRET"),
-      authUrl: "https://www.facebook.com/v19.0/dialog/oauth",
-      tokenUrl: "https://graph.facebook.com/v19.0/oauth/access_token",
-      scopes: [
-        "instagram_basic",
-        "instagram_content_publish",
+      authUrl: "https://www.facebook.com/v21.0/dialog/oauth",
+      tokenUrl: "https://graph.facebook.com/v21.0/oauth/access_token",
+      scopes: scopesFromEnv("META_INSTAGRAM_SCOPES", [
+        "public_profile",
+        "email",
         "pages_show_list",
         "pages_read_engagement",
-      ],
+      ]),
       supportsText: true,
       supportsImage: true,
       supportsVideo: true,
