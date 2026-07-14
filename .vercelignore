@@ -1,5 +1,7 @@
 socialhub-project
 socialhub-project.zip
+Socialhub.zip
+*.zip
 node_modules
 .next
 .git
