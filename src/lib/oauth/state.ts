@@ -50,19 +50,18 @@ export function buildAuthorizeUrl(
   url.searchParams.set("response_type", "code");
   url.searchParams.set("state", state);
 
-  // Facebook Login for Business: use config_id (permissions come from Meta config).
-  // Classic Login: pass scope list.
-  if (provider.platform === "facebook" || provider.platform === "instagram") {
-    const configId = process.env.META_LOGIN_CONFIG_ID?.trim();
-    if (configId) {
-      url.searchParams.set("config_id", configId);
-    } else {
-      const scopes =
-        provider.scopes.length > 0 ? provider.scopes : ["public_profile"];
-      url.searchParams.set("scope", scopes.join(","));
-    }
-  } else {
-    url.searchParams.set("scope", provider.scopes.join(" "));
+  const scopeSep =
+    provider.platform === "facebook" || provider.platform === "instagram"
+      ? ","
+      : " ";
+  const scopes =
+    provider.scopes.length > 0
+      ? provider.scopes
+      : provider.platform === "facebook" || provider.platform === "instagram"
+        ? ["public_profile"]
+        : [];
+  if (scopes.length) {
+    url.searchParams.set("scope", scopes.join(scopeSep));
   }
 
   if (provider.platform === "x" || provider.platform === "youtube") {

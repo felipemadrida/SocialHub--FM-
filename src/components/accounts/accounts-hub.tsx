@@ -83,8 +83,8 @@ export function AccountsHub({
                 Ninguna red conectada
               </p>
               <p className="mt-1 max-w-sm text-center text-sm">
-                Usa <strong>Login SDK</strong> (Facebook) o{" "}
-                <strong>Login OAuth</strong> arriba. No hace falta cuenta manual.
+                Usa <strong>Login OAuth</strong> arriba para cualquier red. El mismo flujo
+                para Facebook, Instagram, X y las demás.
               </p>
               <p className="mt-3 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
                 <AlertCircle className="h-3.5 w-3.5" />

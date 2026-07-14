@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/api-auth";
 import { getOAuthProviders, oauthCallbackUrl } from "@/lib/oauth/providers";
 
-/** List OAuth provider readiness + callback URLs for production setup */
+/** List OAuth provider readiness + callback URLs (same flow for every network). */
 export async function GET() {
   const { error } = await requireSession();
   if (error) return error;
@@ -24,12 +24,6 @@ export async function GET() {
 
   return NextResponse.json({
     providers,
-    meta: {
-      appId: process.env.META_APP_ID || null,
-      loginConfigId: process.env.META_LOGIN_CONFIG_ID || null,
-      sdkVersion: "v21.0",
-      jsSdkEnabled: Boolean(process.env.META_APP_ID?.trim()),
-    },
     summary: {
       total: providers.length,
       configured: configuredCount,
